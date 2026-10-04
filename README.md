@@ -10,6 +10,17 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 ---
 
+## ⬇️ Download / 下载
+
+Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwen-voice-chat/releases)** page:
+
+- **Android**: `实时外语对话-v1.2.apk` — install on Android 6.0+ (allow "unknown sources")
+- **Windows**: `实时外语对话-Windows-v1.2.zip` — unzip, then double-click `实时外语对话.exe`
+
+> The clients contain **no API keys**. On first launch you will be asked for *your own*
+> Alibaba Cloud Bailian API Key and Workspace ID (see [Getting Your API Key](#getting-your-api-key-alibaba-cloud-bailian) below).
+> 客户端不含任何密钥;首次启动需填入你自己的阿里云百炼 API Key 与业务空间 ID(获取方法见下文)。
+
 ## Features / 功能
 
 - **Full-duplex**: streaming audio in and out; interrupt the teacher anytime by simply speaking.
