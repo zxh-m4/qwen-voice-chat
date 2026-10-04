@@ -14,8 +14,8 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwen-voice-chat/releases)** page:
 
-- **Android**: `实时外语对话-v1.2.apk` — install on Android 6.0+ (allow "unknown sources")
-- **Windows**: `实时外语对话-Windows-v1.2.zip` — unzip, then double-click `实时外语对话.exe`
+- **Android**: `RealtimeVoiceChat-v1.2.apk` — install on Android 6.0+ (allow "unknown sources")
+- **Windows**: `RealtimeVoiceChat-v1.2-Windows.zip` — unzip, then double-click `实时外语对话.exe`
 
 > The clients contain **no API keys**. On first launch you will be asked for *your own*
 > Alibaba Cloud Bailian API Key and Workspace ID (see [Getting Your API Key](#getting-your-api-key-alibaba-cloud-bailian) below).
