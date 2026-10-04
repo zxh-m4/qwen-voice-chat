@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.RtChat" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#2C6EB5</item>
+        <item name="colorPrimaryVariant">#1A5B9E</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#1F7A3D</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:windowBackground">#F2F5F9</item>
+        <item name="android:statusBarColor">#1A5B9E</item>
+    </style>
+</resources>

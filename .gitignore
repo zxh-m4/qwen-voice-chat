@@ -1,0 +1,32 @@
+# ---- 通用 ----
+*.log
+*.zip
+*.spec
+.DS_Store
+
+# ---- Windows 版(Python) ----
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+build/
+config.local.json
+*.wav
+*.npy
+models/
+
+# ---- 安卓版 ----
+android/.gradle/
+android/.idea/
+android/local.properties
+android/build/
+android/app/build/
+*.apk
+*.aar
+android/app/libs/*.so
+
+# ---- 签名密钥(绝不入库) ----
+keystore/
+*.jks
+*.keystore
+keystore.properties

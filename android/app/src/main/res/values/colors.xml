@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="user_text">#1A6FB5</color>
+    <color name="ai_text">#1F7A3D</color>
+    <color name="sys_text">#888888</color>
+    <color name="err_text">#C62828</color>
+</resources>

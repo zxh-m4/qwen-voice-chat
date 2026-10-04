@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/dlg_settings_intro"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/dlg_key_label"
+        android:textSize="12sp"
+        android:textColor="#888888" />
+
+    <EditText
+        android:id="@+id/editApiKey"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints=""
+        android:hint="@string/dlg_key_hint"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/dlg_ws_label"
+        android:textSize="12sp"
+        android:textColor="#888888" />
+
+    <EditText
+        android:id="@+id/editWorkspace"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints=""
+        android:hint="@string/dlg_ws_hint"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/dlg_disclaimer"
+        android:textSize="12sp"
+        android:textColor="#888888" />
+</LinearLayout>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!--
+      阿里云 AOQ AAR 会把「屏幕共享」整套组件连同三个权限一起合并进来，
+      但本应用只做语音对话，从不使用屏幕共享。
+      不摘掉的后果：安装页会显示「录屏」权限（用户警觉、不敢装），
+      应用商店审核也会要求解释。这里显式移除。
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:node="remove" />
+
+    <application
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:label="@string/app_name"
+        android:icon="@android:drawable/ic_btn_speak_now"
+        android:theme="@style/Theme.RtChat">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|uiMode"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 同上：AAR 带入但本应用不用的屏幕共享组件，移除 -->
+        <activity
+            android:name="com.alibaba.aoq.clientsdk.screenshare.AoqScreenCaptureAssistantActivity"
+            tools:node="remove" />
+        <service
+            android:name="com.alibaba.aoq.clientsdk.screenshare.AoqScreenShareForegroundService"
+            tools:node="remove" />
+    </application>
+</manifest>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  默认(无语言限定)资源 = 英文。
+  应用内语言由 LocaleHelper 强制设置(不跟随系统),默认 en;中文见 res/values-zh/。
+  注意:XML 中的撇号(')必须写成 \' ,否则 AAPT 报错。
+-->
+<resources>
+    <string name="app_name">Live Language Chat</string>
+
+    <!-- 状态与按钮 -->
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_ready">Listening</string>
+    <string name="state_speaking">Speaking</string>
+    <string name="state_interrupted">Interrupted · Listening</string>
+    <string name="state_closed">Disconnected</string>
+    <string name="btn_disconnect">Stop</string>
+    <string name="btn_connect">Connect</string>
+    <string name="preset_label">Tutor</string>
+    <string name="help_title">How to use</string>
+    <string name="settings_title">Settings</string>
+
+    <!-- 八位老师 -->
+    <string name="preset_english">English tutor</string>
+    <string name="preset_japanese">Japanese tutor</string>
+    <string name="preset_russian">Russian tutor</string>
+    <string name="preset_chinese">Chinese tutor</string>
+    <string name="preset_spanish">Spanish tutor</string>
+    <string name="preset_french">French tutor</string>
+    <string name="preset_korean">Korean tutor</string>
+    <string name="preset_german">German tutor</string>
+
+    <!-- 语言切换 -->
+    <string name="lang_title">Language</string>
+    <string name="lang_btn_en">EN</string>
+    <string name="lang_btn_zh">中</string>
+    <string name="lang_name_en">English</string>
+    <string name="lang_name_zh">中文</string>
+    <string name="lang_switched">Language switched</string>
+
+    <!-- 设置弹窗 -->
+    <string name="settings_title_first">First-time setup: Bailian credentials</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_exit">Exit</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_ok">OK</string>
+    <string name="hint_key_saved">Saved (enter a new key to replace it)</string>
+    <string name="hint_ws_saved">Saved (enter a new workspace ID to replace it)</string>
+    <string name="toast_need_key">Please enter your API Key (create it in the Bailian console)</string>
+    <string name="toast_key_prefix">API Key must start with sk-</string>
+    <string name="toast_need_ws">Please enter your Workspace ID (e.g. llm-xxxxxxxx)</string>
+
+    <!-- 设置弹窗(布局) -->
+    <string name="dlg_settings_intro">Enter your own Alibaba Cloud Bailian credentials (stored on this device only, never uploaded):</string>
+    <string name="dlg_key_label">API Key (Bailian console → API-KEY → Create; starts with sk-)</string>
+    <string name="dlg_key_hint">sk-xxxxxxxx</string>
+    <string name="dlg_ws_label">Workspace ID (Bailian console → Workspace list; unique per account — use your own; e.g. llm-xxxxxxxx)</string>
+    <string name="dlg_ws_hint">llm-xxxxxxxx</string>
+    <string name="dlg_disclaimer">Disclaimer: a personal hobby project, unaffiliated with Alibaba Cloud or Qwen official. You must register your own Alibaba Cloud Bailian account and enter your own API Key; credentials stay on this device. Charges are borne by your own account. Shared free of charge, for learning and exchange only; not for commercial use.</string>
+
+    <!-- 运行时提示 -->
+    <string name="err_connect_timeout">Connection timed out (25s): check that your network can reach Alibaba Cloud, then retry</string>
+    <string name="err_no_mic">Microphone permission is required</string>
+    <string name="sys_switch_preset">Switched to %1$s · new conversation</string>
+    <string name="ai_prefix">AI: </string>
+    <string name="usage_format">This session ≈ ¥%1$.3f · %2$d:%3$02d · est.</string>
+
+    <!-- 后台自动断开 + 面向用户的错误提示(技术细节只写日志) -->
+    <string name="info_bg_disconnected">Disconnected automatically because the app went to the background — tap Connect to continue.</string>
+    <string name="err_auth">Authentication failed. Please check your API Key and Workspace ID.</string>
+    <string name="err_timeout">Connection timed out. Please try again.</string>
+    <string name="err_audio">Audio device problem. Please check your microphone.</string>
+    <string name="err_engine">Audio engine problem. Please reconnect.</string>
+    <string name="err_network">Cannot reach Alibaba Cloud. Please check your network.</string>
+    <string name="err_generic">Something went wrong. Details are in the log file.</string>
+
+</resources>

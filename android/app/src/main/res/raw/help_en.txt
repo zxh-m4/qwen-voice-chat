@@ -1,0 +1,53 @@
+This app creates an immersive environment for practicing a foreign language. It is the first app
+I completed while learning in my spare time, and it is shared completely free of charge.
+Please forgive any rough edges.
+— Xiaohan
+
+[About the voice model]
+Thanks to Alibaba Cloud Qwen realtime voice model — it replies almost instantly, picks up my
+pronunciation problems, and speaks more than thirty languages. This little hobby project became
+a usable speaking partner entirely because of it.
+
+[Disclaimer]
+This app is a personal hobby project, unaffiliated with Alibaba Cloud or Qwen official.
+You must register your own Alibaba Cloud Bailian account and enter your own API Key; usage
+charges are borne by you. This app is shared free of charge, for learning and exchange only —
+do not use it for commercial purposes. The code is open-sourced under the MIT license; feel
+free to modify and build upon it. The author does not expect to update it frequently;
+contributions are welcome.
+
+[Quick start]
+1. First use: tap Settings in the top-right corner and enter your own Bailian credentials
+   · API Key: Bailian console → API-KEY management → Create
+   · Workspace ID: Bailian console → Workspace list (looks like llm-xxxxxxxx)
+     Note: every account has a different workspace ID — use your own, do not copy another one
+   Credentials are stored only on this device and never uploaded to any server
+2. When the status becomes "Listening", just start speaking
+3. It replies automatically after hearing you; you can interrupt by speaking while it talks
+4. Each conversation is billed to your Bailian account; closing stops billing.
+   The bottom of the screen shows an estimate for the current session:
+   · A normal back-and-forth: about ¥0.4 / hour
+   · Staying connected without speaking: about ¥0.15 / hour
+     (noticeably lower once the silence gate is enabled)
+   · Theoretical ceiling if both sides never stop: about ¥0.69 / hour
+   The estimate is derived from audio/text volume and public rates; your console bill is
+   the authoritative figure
+5. Disconnecting or switching tutors starts a fresh context
+
+[Eight languages]
+Switch from the dropdown; switching starts a new conversation. Each tutor locks to its own
+language — whatever language you speak, the tutor replies in that language, and switches to
+Chinese only when you explicitly say "explain in Chinese" or "translate". The Chinese tutor
+is the reverse: it explains in English.
+· English tutor Tina · Japanese tutor Ono Anna · Russian tutor Katerina · Chinese tutor Tina
+· Spanish tutor Sonrisa · French tutor Emilien · Korean tutor Sohee · German tutor Ingrid
+(Not a fan of a voice? The official Bailian voice list has samples to audition —
+just change one line of configuration.)
+
+[Tips]
+· No sound? Apps like this use the CALL volume, not media volume — press the volume key and
+  check the slider label, or raise "Call volume" under Settings → Sound
+· When playing through the speaker at high volume, headphones are recommended to avoid echo
+· Subtitle text can be long-pressed to select and copy
+· If the connection drops, tap "Connect" to reconnect
+· Your phone uses your own Bailian quota; it disconnects when idle to save cost
