@@ -82,6 +82,11 @@ cd android
 Variants: `official` = no bundled credentials (asks on first launch) ·
 `trial` = reserved slot for bundled credentials (shipped empty).
 
+**Checksums (SHA-256) / 校验和**
+
+- `RealtimeVoiceChat-v1.2.apk` — `f7ee6d1e7f0f451653d1e828ed20d7e73b48ac79e9b89028ec1dfddc7a1398a9`
+- `RealtimeVoiceChat-v1.2-Windows.zip` — `43c8b01acb79be80d4af368481d3b3cebd1a04fa3f4d92797c0ca5f8d4872a82`
+
 ## Getting Your API Key (Alibaba Cloud Bailian) / 如何获取 API Key
 
 > ⚠️ The Bailian console is **in Chinese**. Follow these steps:

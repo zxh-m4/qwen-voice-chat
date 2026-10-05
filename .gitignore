@@ -3,16 +3,35 @@
 *.zip
 *.spec
 .DS_Store
+*.bak
+*.tmp
+*.swp
+.env
+
+# ---- 编辑器 / IDE 本机配置 ----
+.qoder/
+.idea/
+*.iml
+.vscode/
+.kotlin/
 
 # ---- Windows 版(Python) ----
 __pycache__/
 *.pyc
 .pytest_cache/
+.coverage
+htmlcov/
 dist/
 build/
+# 真凭据与本地配置(绝不入库)
 config.local.json
+# config.json 由程序首次运行从 config.example.json 自动生成,
+# 用户会在里面填自己的 API Key —— 绝不能提交。
+desktop/config.json
 *.wav
 *.npy
+# 声纹模型权重(体积大,且非本项目产出)
+*.onnx
 models/
 
 # ---- 安卓版 ----
@@ -30,3 +49,7 @@ keystore/
 *.jks
 *.keystore
 keystore.properties
+
+# ---- 本仓库的临时产物(发布时不要带出去) ----
+/对比.diff
+/CHANGES.md

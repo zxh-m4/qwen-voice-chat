@@ -446,7 +446,7 @@ class ChatApp:
 
     def _dispatch(self, item) -> None:
         kind = item[0]
-        log.info("ui_event: %s", item)
+        log.info("ui_event: %s", item[0])  # 只记事件类型,不把对话内容写进日志
         if kind == "state":
             self.state_var.set(STATE_LABELS.get(item[1], item[1]))
             if item[1] in ("ready", "connecting"):
@@ -458,7 +458,7 @@ class ChatApp:
             self._append_ai_delta(item[1])
         elif kind == "error":
             self.err_var.set(f"[{item[1]}] {item[2]}")
-            if item[1] in ("quota", "403", " Authentication"):
+            if item[1] in ("quota", "403", "Authentication"):
                 self._disconnect()
                 self.btn.config(text="连接")
         elif kind == "conn":

@@ -1,9 +1,7 @@
-# 运行时依赖
-websocket-client>=1.7.0
-sounddevice>=0.4.6
-# numpy:静音门/声纹门要做 RMS 与重采样计算(已替代 Python 3.13 移除的 audioop 模块)。
-# 注意:漏掉这一项的话,程序启动会直接 ImportError。
-numpy>=1.24
+websocket-client==1.9.2
+sounddevice==0.5.6
+numpy==1.26.4
+pytest==9.1.1
 
-# 开发/测试
-pytest>=8.0
+# 可选:声纹门(默认关闭)需要 sherpa-onnx;未安装时自动降级直通,不影响使用
+# sherpa-onnx>=1.10

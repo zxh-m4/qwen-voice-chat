@@ -10,8 +10,9 @@
 ## 方式 A:免安装 exe(推荐,最省事)
 
 1. 把整个 `dist\实时中英对话\` 文件夹拷到目标电脑(任意位置,如桌面);
-2. 把源码目录的 `config.json` 也拷进**该文件夹里**(和 exe 同级)——
-   里面含 API key,别外传;
+2. 首次运行 exe,按弹窗填入你自己的凭据(会存到 exe 旁的 `config.local.json`);
+   若想从旧机器迁移凭据,把旧机器的 `config.local.json` 拷到 exe 旁即可
+   (内含你的 API Key,别外传);
 3. 双击 `实时中英对话.exe`,看到「聆听中」即可说话;
 4. (可选)右键 exe → 发送到 → 桌面快捷方式。
 
@@ -25,7 +26,7 @@
    ```bash
    pip install -r requirements.txt
    ```
-4. 确认 `config.json` 里 `api_key` 是你的 key(有额度);
+4. 确认已在程序设置里填好你自己的 API Key(有额度);
 5. 运行:
    ```bash
    python run.py

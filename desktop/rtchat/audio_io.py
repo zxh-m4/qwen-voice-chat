@@ -64,6 +64,7 @@ class Player:
         self._device = device
         self._queue = PlaybackQueue()
         self._pending = bytearray()  # 跨回调保留的残余字节(不足一帧不许丢)
+        self._pending_lock = threading.Lock()  # _pending 会被音频回调线程与主线程(clear)并发访问
         self.stats = {"callbacks": 0, "underrun_samples": 0}
         self._stream = None
         self._lock = threading.Lock()
@@ -73,17 +74,18 @@ class Player:
 
         self.stats["callbacks"] += 1
         need = frames * 2  # int16 单声道
-        while len(self._pending) < need:
-            chunk = self._queue.pop()
-            if chunk is None:
-                break
-            self._pending.extend(chunk)
-        if len(self._pending) < need:
-            # underrun:数据没跟上,补静音并计数(供诊断)
-            self.stats["underrun_samples"] += (need - len(self._pending)) // 2
-        data = bytes(self._pending[:need])
-        usable = len(data) - len(data) % 2  # 奇数字节尾巴留在 pending,下次拼
-        del self._pending[:usable]
+        with self._pending_lock:
+            while len(self._pending) < need:
+                chunk = self._queue.pop()
+                if chunk is None:
+                    break
+                self._pending.extend(chunk)
+            if len(self._pending) < need:
+                # underrun:数据没跟上,补静音并计数(供诊断)
+                self.stats["underrun_samples"] += (need - len(self._pending)) // 2
+            data = bytes(self._pending[:need])
+            usable = len(data) - len(data) % 2  # 奇数字节尾巴留在 pending,下次拼
+            del self._pending[:usable]
         flat = outdata.reshape(-1)  # (frames, channels) -> 一维视图,写入即写回 outdata
         if len(data) < need:
             flat.fill(0)
@@ -115,7 +117,8 @@ class Player:
                     log.exception("关闭播放流失败")
                 self._stream = None
             self._queue.clear()
-            self._pending.clear()
+            with self._pending_lock:
+                self._pending.clear()
 
     def write_b64(self, b64: str) -> None:
         self._queue.write_b64(b64)
@@ -126,7 +129,8 @@ class Player:
     def clear(self) -> None:
         """打断:清空待播音频与残余。"""
         self._queue.clear()
-        self._pending.clear()
+        with self._pending_lock:
+            self._pending.clear()
 
     @property
     def idle(self) -> bool:
