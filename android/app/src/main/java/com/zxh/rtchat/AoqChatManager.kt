@@ -71,6 +71,10 @@ class AoqChatManager(
     /** 首帧校核只打一次,避免刷屏。 */
     @Volatile private var frameSizeChecked = false
 
+    // ---------- 费用累计(进程级):从打开应用到退出;退出即清零。转后台/换老师不清零 ----------
+    @Volatile private var totalCostAcc = 0.0   // 累计(元)
+    @Volatile private var sessionAccrued = 0.0 // 本会话已计入累计的部分(防重复计入)
+
     // ---------- 静音门(省输入 token) ----------
     private val silenceGate = SilenceGate()
     /**
@@ -154,6 +158,7 @@ class AoqChatManager(
         textOutTokens = 0.0
         frameSizeChecked = false
         silenceGate.reset()
+        sessionAccrued = 0.0 // 仅清算"已计入累计"的记账位;totalCostAcc 为进程级累计,不在此清零
         gateFailedOpen = false
         gateMuted = false
         lastCaptureAtMs = 0L
@@ -681,21 +686,26 @@ class AoqChatManager(
         }
     }
 
-    /** 本次会话用量估算:(费用元, 连接秒数)。
-     *  上行:静音门生效时按「实际发送量」累计,否则按连接时长;
-     *  下行:按播放帧的真实采样数折算(不再假设 10ms/帧);
-     *  另计入文本 token,并按「多轮历史逐轮重新计入输入」累加。仅供参考。 */
-    fun usageEstimate(): Pair<Double, Long> {
+    /** 用量估算:(本次费用元, 累计费用元, 连接秒数)。
+     *  本次:静音门生效按实际发送量/否则按连接时长 + 下行真实帧折算 + 文本 token;
+     *  累计:从打开应用到退出的进程级累计(转后台/换老师不清;退出即清零)。仅供参考。 */
+    fun usageEstimate(): Triple<Double, Double, Long> {
         watchdogGate()
         val start = sessionStartMs
         val connSecs = if (start > 0) (System.currentTimeMillis() - start) / 1000.0 else 0.0
         val upSecs = if (gateEngaged()) silenceGate.sentSec else connSecs
-        val cost =
+        val sessionCost =
             upSecs * Rate.AUDIO_IN_TOK_PER_SEC * Rate.AUDIO_IN_PER_M / 1_000_000 +
                 playbackAudioSec * Rate.AUDIO_OUT_TOK_PER_SEC * Rate.AUDIO_OUT_PER_M / 1_000_000 +
                 textInTokens * Rate.TEXT_IN_PER_M / 1_000_000 +
                 textOutTokens * Rate.TEXT_OUT_PER_M / 1_000_000
-        return cost to connSecs.toLong()
+        // 把本会话的新增部分计入进程累计(重连后"本次"归零,累计继续)
+        val delta = sessionCost - sessionAccrued
+        if (delta > 0) {
+            totalCostAcc += delta
+            sessionAccrued = sessionCost
+        }
+        return Triple(sessionCost, totalCostAcc, connSecs.toLong())
     }
 
     /** 静音门是否真的在起作用:收到过上行采帧,且没走 fail-open。 */

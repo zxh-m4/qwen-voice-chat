@@ -98,7 +98,7 @@
             android:layout_height="wrap_content"
             android:minWidth="0dp"
             android:paddingHorizontal="16dp"
-            android:text="@string/btn_disconnect"
+            android:text="@string/btn_connect"
             android:textSize="13sp" />
     </LinearLayout>
 

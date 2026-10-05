@@ -58,7 +58,7 @@
     <string name="err_no_mic">没有麦克风权限,无法对话</string>
     <string name="sys_switch_preset">切换角色:%1$s,开始新对话</string>
     <string name="ai_prefix">AI:</string>
-    <string name="usage_format">本次约 ¥%1$.3f · %2$d:%3$02d · 估算</string>
+    <string name="usage_format">本次 ¥%1$.3f · 累计 ¥%2$.3f · %3$d:%4$02d</string>
 
     <!-- 后台自动断开 + 面向用户的错误提示(技术细节只写日志) -->
     <string name="info_bg_disconnected">已因退到后台自动断开,点「连接」继续</string>

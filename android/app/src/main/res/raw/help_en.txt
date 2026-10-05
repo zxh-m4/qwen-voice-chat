@@ -25,6 +25,10 @@ contributions are welcome.
 2. When the status becomes "Listening", just start speaking
 3. It replies automatically after hearing you; you can interrupt by speaking while it talks
 4. Each conversation is billed to your Bailian account; closing stops billing.
+   The bottom bar shows two ESTIMATES derived from audio duration: "This" (current session) and
+   "Total" (accumulated since the app was opened — backgrounding or switching teachers does not
+   reset it; closing the app does). For the exact bill, sign in to the Alibaba Cloud Bailian
+   console and check "Billing details".
    The bottom of the screen shows an estimate for the current session:
    · A normal back-and-forth: about ¥0.4 / hour
    · Staying connected without speaking: about ¥0.15 / hour
@@ -43,6 +47,11 @@ is the reverse: it explains in English.
 · Spanish tutor Sonrisa · French tutor Emilien · Korean tutor Sohee · German tutor Ingrid
 (Not a fan of a voice? The official Bailian voice list has samples to audition —
 just change one line of configuration.)
+
+[Privacy]
+- Your voice is streamed to Alibaba Cloud Bailian for recognition and synthesis.
+- Your API Key / Workspace ID stay on this device (encrypted) and are never sent anywhere else.
+- The run log records event types and diagnostics only — never your conversation content.
 
 [Tips]
 · No sound? Apps like this use the CALL volume, not media volume — press the volume key and

@@ -54,10 +54,11 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
     private val usageTick = object : Runnable {
         override fun run() {
             if (running) {
-                val (cost, secs) = manager.usageEstimate()
+                val (sessionCost, totalCost, secs) = manager.usageEstimate()
                 // Locale.US:小数分隔符固定为「.」,避免系统语言变化时显示成 ¥0,022
                 usageText.text = String.format(
-                    Locale.US, getString(R.string.usage_format), cost, secs / 60, secs % 60
+                    Locale.US, getString(R.string.usage_format),
+                    sessionCost, totalCost, secs / 60, secs % 60
                 )
                 usageHandler.postDelayed(this, 2000)
             }
@@ -107,7 +108,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         if (!store.credentials.isComplete) {
             showSettingsDialog(required = true)
         } else {
-            requestMicIfNeeded()
+            startIfMicGrantedOrRequest() // 打开即自动连接(权限已授则直连;未授则授权后自动连)
         }
     }
 
@@ -260,8 +261,28 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
      */
     private fun loadHelpText(): String {
         val resId = if (store.appLanguage == LocaleHelper.LANG_ZH) R.raw.help_zh else R.raw.help_en
-        return resources.openRawResource(resId).bufferedReader().use { it.readText() }
+        val base = resources.openRawResource(resId).bufferedReader().use { it.readText() }
+        // 体验版(trial,包内有内置凭据):帮助页最前面加"体验版说明"(分享给朋友的场景)
+        return if (BuildConfig.BUILTIN_KEY_ENC.isNotEmpty()) trialNotice() + "\n\n" + base else base
     }
+
+    /** 试用版说明(仅 trial 变体出现;official 版无内置凭据,不显示)。 */
+    private fun trialNotice(): String =
+        if (store.appLanguage == LocaleHelper.LANG_ZH) {
+            "【试用版说明】\n" +
+                "本安装包为作者提供的分享试用版,已内置体验额度——安装后无需填写任何凭据即可直接使用,费用由作者承担。\n" +
+                "仅供个人体验:请勿公开传播,请勿用于商业用途。\n" +
+                "如果试用后觉得好用,请注册你自己的阿里云百炼账号并填入自己的 API Key 继续使用" +
+                "(开源版可在 GitHub 搜 qwen-voice-chat,作者 zxh-m4)。"
+        } else {
+            "[Trial notice]\n" +
+                "This package is the author's trial build with bundled credentials — it works right away, " +
+                "no setup needed; costs are covered by the author.\n" +
+                "For personal trial only: please do not redistribute publicly or use it commercially.\n" +
+                "If you find it useful, please register your own Alibaba Cloud Bailian account " +
+                "and switch to your own API Key to keep using it " +
+                "(open-source build: search \"qwen-voice-chat\" on GitHub by zxh-m4)."
+        }
 
     private fun showHelpDialog() {
         val tv = TextView(this).apply {
@@ -277,6 +298,34 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             .setView(sv)
             .setPositiveButton(getString(R.string.btn_ok), null)
             .show()
+    }
+
+    private var pendingAutoConnect = false
+
+    /** 首次进入自动连接:权限已授予直接连;未授予先请求,授权成功后自动连;拒绝则等手动。 */
+    private fun startIfMicGrantedOrRequest() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startConnection()
+        } else {
+            pendingAutoConnect = true
+            requestMicIfNeeded()
+        }
+    }
+
+    /** 启动会话(等价于点「连接」)。按钮文字从第一帧起与真实状态一致。 */
+    private fun startConnection() {
+        if (!store.credentials.isComplete) {
+            showSettingsDialog(required = true)
+            return
+        }
+        errText.text = ""
+        manager.start(SessionPresets.byKey(presetKeyAt(spinner.selectedItemPosition)))
+        running = true
+        btnToggle.text = getString(R.string.btn_disconnect)
+        usageHandler.post(usageTick)
+        scheduleConnectTimeout()
     }
 
     private fun requestMicIfNeeded() {
@@ -295,16 +344,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             usageText.text = ""
             btnToggle.text = getString(R.string.btn_connect)
         } else {
-            if (!store.credentials.isComplete) {
-                showSettingsDialog(required = true)
-                return
-            }
-            errText.text = ""
-            manager.start(SessionPresets.byKey(presetKeyAt(spinner.selectedItemPosition)))
-            running = true
-            btnToggle.text = getString(R.string.btn_disconnect)
-            usageHandler.post(usageTick)
-            scheduleConnectTimeout()
+            startConnection()
         }
     }
 
@@ -323,8 +363,18 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQ_PERM && grantResults.firstOrNull() != PackageManager.PERMISSION_GRANTED) {
-            errText.text = getString(R.string.err_no_mic)
+        if (requestCode == REQ_PERM) {
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+                if (pendingAutoConnect) {
+                    pendingAutoConnect = false
+                    startConnection() // 授权完成,补上自动连接
+                }
+            } else {
+                pendingAutoConnect = false
+                errText.setTextColor(ContextCompat.getColor(this, R.color.err_text))
+                errText.text = getString(R.string.err_no_mic)
+                btnToggle.text = getString(R.string.btn_connect)
+            }
         }
     }
 

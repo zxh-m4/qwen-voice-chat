@@ -21,8 +21,8 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a")
         }

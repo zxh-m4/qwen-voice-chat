@@ -62,7 +62,7 @@
     <string name="err_no_mic">Microphone permission is required</string>
     <string name="sys_switch_preset">Switched to %1$s · new conversation</string>
     <string name="ai_prefix">AI: </string>
-    <string name="usage_format">This session ≈ ¥%1$.3f · %2$d:%3$02d · est.</string>
+    <string name="usage_format">This ¥%1$.3f · Total ¥%2$.3f · %3$d:%4$02d</string>
 
     <!-- 后台自动断开 + 面向用户的错误提示(技术细节只写日志) -->
     <string name="info_bg_disconnected">Disconnected automatically because the app went to the background — tap Connect to continue.</string>
