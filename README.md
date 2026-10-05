@@ -85,7 +85,10 @@ Variants: `official` = no bundled credentials (asks on first launch) ·
 **Checksums (SHA-256) / 校验和**
 
 - `RealtimeVoiceChat-v1.2.apk` — `f7ee6d1e7f0f451653d1e828ed20d7e73b48ac79e9b89028ec1dfddc7a1398a9`
-- `RealtimeVoiceChat-v1.2-Windows.zip` — `43c8b01acb79be80d4af368481d3b3cebd1a04fa3f4d92797c0ca5f8d4872a82`
+- `RealtimeVoiceChat-v1.2-Windows.zip` — `493621db3a2b7a0c12723ef8d419e7110c4931b1cb77eaa70f65c1045ea66580`
+
+**APK signing certificate (SHA-256) / 签名证书指纹**:
+`a234361aedf1d82cb2b24fa5628dd6dc26c2cadc46356dc8ab45ecad4463e193`
 
 ## Getting Your API Key (Alibaba Cloud Bailian) / 如何获取 API Key
 

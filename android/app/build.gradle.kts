@@ -65,6 +65,7 @@ android {
             signingConfig = if (keystorePropsFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
+                println("WARNING: keystore/keystore.properties not found — release build will be signed with the DEBUG key (NOT for distribution / 不可用于正式分发).")
                 signingConfigs.getByName("debug")
             }
         }

@@ -18,6 +18,8 @@ app/libs/
 └── armeabi-v7a/libPluginOpus.so
 ```
 
+> 本项目在 **v1.3.0** 版 SDK 上验证通过;官方页面会更新最新版,如遇接口变化请对照调整。
+
 然后在仓库的 `android/` 目录下构建即可:
 
 ```bash
