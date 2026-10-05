@@ -44,9 +44,12 @@ AI 不会再"接自己的话",回环物理性消失;你和其他人的声音全�
 你把凭据填进 `config.json` 即可。**`config.json` 已被 `.gitignore` 排除**,
 填了真实 API Key 也不会误提交到公开仓库(仓库里只保留不含凭据的模板)。
 
-**推荐直接在程序界面里输入凭据**(点「设置」按钮,或首次启动时按提示填)——凭据会存到
-`config.local.json`(同样已被 gitignore 排除,且优先级最高,不会误提交);
-手动填进 `config.json` 也安全,两种文件都已被仓库的 .gitignore 排除。
+**推荐直接在程序界面里输入凭据**(点「设置」按钮,或首次启动时按提示填)——Windows 上凭据会存入
+**Windows 凭据管理器**(系统加密,可在「控制面板 → 凭据管理器 → Windows 凭据」查看或删除,
+条目名 `QwenVoiceChat/credentials`);写入失败或系统非 Windows 时自动回退存到 `config.local.json`
+(已被 gitignore 排除,不会误提交)。旧版本升级时会做一次自动迁移:若凭据管理器为空而
+`config.local.json` 里有凭据,则迁入凭据管理器(原文件保留)。手动填进 `config.json` 也安全,
+该文件同样被仓库的 .gitignore 排除。
 
 | 字段 | 说明 | 默认 |
 |---|---|---|
@@ -97,12 +100,16 @@ python test_dialogue.py        # 全链路:本地 WAV 灌入->VAD->转写->模�
 ```
 run.py                入口
 config.example.json    配置模板(首次运行自动复制为 config.json,不含凭据)
-rtchat/config.py      配置加载 + 域名推导          [有测试]
+rtchat/config.py      配置加载 + 域名推导 + 凭据(凭据管理器/本地文件)  [有测试]
+rtchat/strings.py     界面文案字典(中/英,默认中文;右上角按钮切换)
+rtchat/usage.py       费用估算(本次+累计,与安卓版同口径)          [有测试]
 rtchat/protocol.py    协议消息构建/解析            [有测试]
 rtchat/frames.py      PCM 帧切分 + 播放队列        [有测试]
 rtchat/session.py     会话状态机(打断/分发核心)   [有测试]
 rtchat/audio_io.py    麦克风采集 + 声卡播放
 rtchat/connection.py  WebSocket 连接层(30s 心跳)
+rtchat/wincred.py     Windows 凭据管理器封装(ctypes,零第三方依赖)  [有测试]
 rtchat/app.py         Tkinter 窗口(主线程 after 轮询 UI 队列)
 smoke_connect.py / test_dialogue.py   联调脚本
+smoke_v13.py          界面回归冒烟(双语/费用行/设置对话框打码)
 ```

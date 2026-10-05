@@ -37,6 +37,31 @@ def _configure_via_dialog(config_path: str, err: str):
         return None
 
 
+def configure_logging(log_path: str) -> None:
+    """日志:1MB 轮转、保留 1 个备份(长会话日志有界;与安卓版"超限清理"同目的)。
+
+    注意:轮转模式为追加,不再像旧版那样每次启动清空——跨启动保留更利于排障,
+    上限 2MB(app.log + app.log.1)。
+    """
+    from logging.handlers import RotatingFileHandler
+
+    handler = RotatingFileHandler(
+        log_path, maxBytes=1_000_000, backupCount=1, encoding="utf-8"
+    )
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    )
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    for h in list(root.handlers):
+        root.removeHandler(h)
+        try:
+            h.close()
+        except Exception:
+            pass
+    root.addHandler(handler)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="实时中英语音对话(Qwen Omni Realtime)")
     parser.add_argument(
@@ -46,12 +71,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        filename=os.path.join(app_dir(), "app.log"),
-        filemode="w",
-    )
+    configure_logging(os.path.join(app_dir(), "app.log"))
 
     from rtchat.app import ChatApp
     from rtchat.config import ConfigError, load_config

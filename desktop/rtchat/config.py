@@ -3,8 +3,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
+
+from . import wincred
+from .strings import normalize_language
+
+
+log = logging.getLogger(__name__)
 
 
 class ConfigError(Exception):
@@ -47,6 +54,7 @@ class Config:
     voiceprint_model: str = ""   # 空 = 程序目录 models/3dspeaker_...onnx
     presets: dict = field(default_factory=dict)  # name -> Preset
     active_preset: str = ""
+    ui_language: str = "zh"   # 界面语言(zh/en),见 rtchat/strings.py
     extra: dict = field(default_factory=dict)
 
     @property
@@ -130,13 +138,56 @@ def local_config_path(config_path: str) -> str:
     return os.path.join(os.path.dirname(os.path.abspath(config_path)), LOCAL_CONFIG_FILENAME)
 
 
-def save_local_credentials(config_path: str, api_key: str, workspace_id: str) -> None:
-    """保存用户输入的凭据到 config.local.json(优先级最高)。"""
+def load_local_credentials(config_path: str) -> dict:
+    """凭据来源(优先级):Windows 凭据管理器 > config.local.json(旧明文文件)。"""
+    obj = wincred.load()
+    if isinstance(obj, dict) and obj.get("api_key"):
+        return obj
+    lp = local_config_path(config_path)
+    if os.path.isfile(lp):
+        try:
+            with open(lp, encoding="utf-8") as lf:
+                data = json.load(lf)
+                if isinstance(data, dict):
+                    return data
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def save_credentials(config_path: str, api_key: str, workspace_id: str) -> str:
+    """保存凭据:优先 Windows 凭据管理器,失败/非 Windows 回退 config.local.json。
+
+    返回存储位置:"wincred" 或 "file"。
+    """
+    payload = {"api_key": api_key.strip(), "workspace_id": workspace_id.strip()}
+    if wincred.available() and wincred.save(payload):
+        return "wincred"
     with open(local_config_path(config_path), "w", encoding="utf-8") as f:
-        json.dump(
-            {"api_key": api_key.strip(), "workspace_id": workspace_id.strip()},
-            f, ensure_ascii=False, indent=2,
-        )
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    return "file"
+
+
+def migrate_credentials_to_wincred(config_path: str) -> bool:
+    """凭据管理器为空而 config.local.json 存在明文凭据时,迁移进去(原文件保留,不删)。"""
+    if not wincred.available():
+        return False
+    if wincred.load():
+        return False  # 已有凭据,不覆盖
+    lp = local_config_path(config_path)
+    if not os.path.isfile(lp):
+        return False
+    try:
+        with open(lp, encoding="utf-8") as lf:
+            obj = json.load(lf)
+    except (json.JSONDecodeError, OSError):
+        return False
+    if not isinstance(obj, dict) or not obj.get("api_key"):
+        return False
+    ok = wincred.save({"api_key": obj["api_key"], "workspace_id": obj.get("workspace_id", "")})
+    if ok:
+        log.info("凭据已迁移到 Windows 凭据管理器(config.local.json 可手动删除)")
+    return ok
 
 
 def load_config(path: str) -> Config:
@@ -150,17 +201,8 @@ def load_config(path: str) -> Config:
     if not isinstance(data, dict):
         raise ConfigError(f"配置文件顶层必须是 JSON 对象: {path}")
 
-    # 本地凭据文件(用户自己输入的,优先级最高;分享的包里不含它)
-    local: dict = {}
-    lp = local_config_path(path)
-    if os.path.isfile(lp):
-        try:
-            with open(lp, encoding="utf-8") as lf:
-                obj = json.load(lf)
-                if isinstance(obj, dict):
-                    local = obj
-        except (json.JSONDecodeError, OSError):
-            local = {}  # 损坏的本地文件忽略,回退 config.json
+    # 本地凭据(Windows 凭据管理器 > config.local.json 明文文件;分享的包里都不含)
+    local: dict = load_local_credentials(path)
 
     api_key = (
         str(local.get("api_key", "")).strip()
@@ -179,7 +221,7 @@ def load_config(path: str) -> Config:
         "silence_gate", "silence_gate_ms", "silence_threshold_rms",
         "voiceprint_enabled", "voiceprint_threshold", "voiceprint_buffer_ms",
         "voiceprint_model",
-        "active_preset",
+        "active_preset", "ui_language",
     }
     ws_local = str(local.get("workspace_id", "")).strip()
     if ws_local:
@@ -208,5 +250,40 @@ def load_config(path: str) -> Config:
             f"active_preset '{active}' 不存在,可选:{sorted(presets)}"
         )
     kwargs["active_preset"] = active
+    kwargs["ui_language"] = normalize_language(str(kwargs.get("ui_language") or "zh"))
 
     return Config(api_key=api_key, presets=presets, extra=extra, **kwargs)
+
+
+def save_ui_language(config_path: str, lang: str) -> None:
+    """把界面语言写回 config.json(读-改-写,保留其他字段)。"""
+    lang = normalize_language(lang)
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+    data["ui_language"] = lang
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def resolve_credentials_input(
+    key_in: str, ws_in: str, cfg: "Config | None"
+) -> tuple[str, str, str]:
+    """设置对话框的保存逻辑:空输入沿用已存值(双框打码不回填,可只改其中一项)。
+
+    返回 (eff_key, eff_ws, err);err 为空串表示可以保存,
+    否则为错误码(key_required / key_prefix / ws_required),由界面按语言显示文案。
+    """
+    key = (key_in or "").strip() or (cfg.api_key if cfg else "")
+    ws = (ws_in or "").strip() or (cfg.workspace_id if cfg else "")
+    if not key:
+        return key, ws, "key_required"
+    if not key.startswith("sk-"):
+        return key, ws, "key_prefix"
+    if not ws:
+        return key, ws, "ws_required"
+    return key, ws, ""

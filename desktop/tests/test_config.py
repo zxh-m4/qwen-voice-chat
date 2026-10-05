@@ -80,21 +80,21 @@ class TestLocalCredentials:
     """config.local.json:用户自己的凭据(不进分享),优先级最高。"""
 
     def test_local_file_overrides_config(self, tmp_path):
-        from rtchat.config import save_local_credentials
+        from rtchat.config import save_credentials
 
         p = tmp_path / "config.json"
         p.write_text(json.dumps({"api_key": "", "workspace_id": ""}), encoding="utf-8")
-        save_local_credentials(str(p), "sk-local-key", "llm-local-ws")
+        save_credentials(str(p), "sk-local-key", "llm-local-ws")
         cfg = load_config(str(p))
         assert cfg.api_key == "sk-local-key"
         assert cfg.workspace_id == "llm-local-ws"
 
     def test_local_overrides_config_existing_key(self, tmp_path):
-        from rtchat.config import save_local_credentials
+        from rtchat.config import save_credentials
 
         p = tmp_path / "config.json"
         p.write_text(json.dumps({"api_key": "sk-from-config", "workspace_id": "ws-a"}), encoding="utf-8")
-        save_local_credentials(str(p), "sk-local", "ws-b")
+        save_credentials(str(p), "sk-local", "ws-b")
         cfg = load_config(str(p))
         assert cfg.api_key == "sk-local"          # 本地凭据优先
         assert cfg.workspace_id == "ws-b"
@@ -110,11 +110,11 @@ class TestLocalCredentials:
             load_config(str(p))
 
     def test_save_local_roundtrip_strips(self, tmp_path):
-        from rtchat.config import save_local_credentials
+        from rtchat.config import save_credentials
 
         p = tmp_path / "config.json"
         p.write_text("{}", encoding="utf-8")
-        save_local_credentials(str(p), "  sk-x  ", "  llm-y  ")
+        save_credentials(str(p), "  sk-x  ", "  llm-y  ")
         cfg = load_config(str(p))
         assert cfg.api_key == "sk-x"
         assert cfg.workspace_id == "llm-y"
@@ -125,3 +125,85 @@ class TestLocalCredentials:
         (tmp_path / "config.local.json").write_text("{broken", encoding="utf-8")
         cfg = load_config(str(p))
         assert cfg.api_key == "sk-config"          # 损坏的本地文件被忽略,回退配置
+
+
+class TestUiLanguage:
+    """界面语言(默认中文,可切英文;非法值回落中文)。"""
+
+    def test_default_zh(self, tmp_path):
+        cfg = load_config(str(make_cfg_file(tmp_path)))
+        assert cfg.ui_language == "zh"
+
+    def test_load_en(self, tmp_path):
+        cfg = load_config(str(make_cfg_file(tmp_path, ui_language="en")))
+        assert cfg.ui_language == "en"
+
+    def test_invalid_falls_back_to_zh(self, tmp_path):
+        cfg = load_config(str(make_cfg_file(tmp_path, ui_language="fr")))
+        assert cfg.ui_language == "zh"
+
+    def test_save_and_reload(self, tmp_path):
+        from rtchat.config import save_ui_language
+
+        p = make_cfg_file(tmp_path)
+        save_ui_language(str(p), "en")
+        data = json.loads(p.read_text(encoding="utf-8"))
+        assert data["ui_language"] == "en"
+        assert data["api_key"] == "sk-test123"     # 其他字段保留
+        assert load_config(str(p)).ui_language == "en"
+
+    def test_save_invalid_normalizes_to_zh(self, tmp_path):
+        from rtchat.config import save_ui_language
+
+        p = make_cfg_file(tmp_path)
+        save_ui_language(str(p), "fr")
+        data = json.loads(p.read_text(encoding="utf-8"))
+        assert data["ui_language"] == "zh"
+
+
+class TestResolveCredentialsInput:
+    """设置对话框保存逻辑:双框打码不回填,空输入沿用已存值。"""
+
+    def test_both_provided(self):
+        from rtchat.config import resolve_credentials_input
+
+        key, ws, err = resolve_credentials_input("sk-new", "llm-new", None)
+        assert (key, ws, err) == ("sk-new", "llm-new", "")
+
+    def test_key_empty_reuses_saved(self):
+        from rtchat.config import resolve_credentials_input
+
+        cfg = Config(api_key="sk-old", workspace_id="llm-old")
+        key, ws, err = resolve_credentials_input("", "llm-new", cfg)
+        assert (key, ws, err) == ("sk-old", "llm-new", "")
+
+    def test_ws_empty_reuses_saved(self):
+        from rtchat.config import resolve_credentials_input
+
+        cfg = Config(api_key="sk-old", workspace_id="llm-old")
+        key, ws, err = resolve_credentials_input("sk-new", "", cfg)
+        assert (key, ws, err) == ("sk-new", "llm-old", "")
+
+    def test_first_run_requires_key(self):
+        from rtchat.config import resolve_credentials_input
+
+        _, _, err = resolve_credentials_input("", "", None)
+        assert err == "key_required"
+
+    def test_key_prefix_validated(self):
+        from rtchat.config import resolve_credentials_input
+
+        _, _, err = resolve_credentials_input("bad-key", "llm-x", None)
+        assert err == "key_prefix"
+
+    def test_ws_required(self):
+        from rtchat.config import resolve_credentials_input
+
+        _, _, err = resolve_credentials_input("sk-x", "", None)
+        assert err == "ws_required"
+
+    def test_whitespace_stripped(self):
+        from rtchat.config import resolve_credentials_input
+
+        key, ws, err = resolve_credentials_input("  sk-x  ", "  llm-y  ", None)
+        assert (key, ws, err) == ("sk-x", "llm-y", "")

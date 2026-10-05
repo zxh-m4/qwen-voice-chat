@@ -14,8 +14,8 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwen-voice-chat/releases)** page:
 
-- **Android**: `RealtimeVoiceChat-v1.2.apk` — install on Android 6.0+ (allow "unknown sources")
-- **Windows**: `RealtimeVoiceChat-v1.2-Windows.zip` — unzip, then double-click `实时外语对话.exe`
+- **Android**: `RealtimeVoiceChat-v1.3.apk` — install on Android 6.0+ (allow "unknown sources")
+- **Windows**: `RealtimeVoiceChat-v1.3-Windows.zip` — unzip, then double-click `实时外语对话.exe`
 
 > The clients contain **no API keys**. On first launch you will be asked for *your own*
 > Alibaba Cloud Bailian API Key and Workspace ID (see [Getting Your API Key](#getting-your-api-key-alibaba-cloud-bailian) below).
@@ -34,9 +34,11 @@ Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwe
   | Русский | Katerina | Français | Emilien |
   | 한국어 | Sohee | Deutsch | Ingrid |
 - **Live subtitles** for both sides.
-- **Usage estimate** shown at the bottom of the UI while chatting.
+- **Bilingual UI** (Chinese / English, default Chinese): switch with the top-right `EN / 中文`
+  button; the choice is remembered across launches.
+- **Usage estimates**: this-session and process-lifetime totals shown at the bottom while chatting.
 - **Credential-free client**: the app contains no keys; on first launch it asks for *your own*
-  API Key and Workspace ID, stored locally only.
+  API Key and Workspace ID, stored locally only (Windows Credential Manager with a local-file fallback).
 
 ## Repository Layout / 目录结构
 
@@ -44,7 +46,7 @@ Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwe
 qwen-voice-chat/
 ├── desktop/             Desktop app (Python 3.10+, Tkinter + sounddevice) — Windows / macOS / Linux
 │   ├── rtchat/          Core modules (protocol / session state machine / audio / silence gate)
-│   ├── tests/           99 unit tests
+│   ├── tests/           143 unit tests
 │   ├── run.py           Entry point
 │   └── config.example.json  Config template (auto-copied to config.json on first run)
 ├── android/             Android app (Kotlin, Gradle 8.14 + JDK 17)
@@ -84,8 +86,8 @@ Variants: `official` = no bundled credentials (asks on first launch) ·
 
 **Checksums (SHA-256) / 校验和**
 
-- `RealtimeVoiceChat-v1.2.apk` — `f7ee6d1e7f0f451653d1e828ed20d7e73b48ac79e9b89028ec1dfddc7a1398a9`
-- `RealtimeVoiceChat-v1.2-Windows.zip` — `493621db3a2b7a0c12723ef8d419e7110c4931b1cb77eaa70f65c1045ea66580`
+- `RealtimeVoiceChat-v1.3.apk` — `5647d151dd68a0cdc281e15d90ada9b2a642f9a4b5f6b0333cb609b6bc6473ad`
+- `RealtimeVoiceChat-v1.3-Windows.zip` — `43574c6f0886d878fba33a1271a46ccac3da157e0609d4f71669f17546331177`
 
 **APK signing certificate (SHA-256) / 签名证书指纹**:
 `a234361aedf1d82cb2b24fa5628dd6dc26c2cadc46356dc8ab45ecad4463e193`
@@ -128,10 +130,15 @@ measured audio duration and published rates, not from actual server-side token c
   转写文字仅显示在屏幕上，**任何对话内容都不会写入日志或文件**。
 - **Credentials / 凭据**：your API Key and Workspace ID stay on your device. On Android 6.0+
   they are encrypted with an AES key held in the **system KeyStore** (the app itself cannot read
-  the key back); app backup is disabled. Desktop keeps them in `config.local.json`, which is
-  excluded by `.gitignore`. They are sent only to Alibaba Cloud's auth endpoint.
+  the key back); app backup is disabled. On Windows the desktop app stores them in the
+  **Windows Credential Manager** (system-encrypted; view or delete under Control Panel →
+  Credential Manager); only if that fails, or on non-Windows systems, it falls back to
+  `config.local.json`, which is excluded by `.gitignore`. They are sent only to Alibaba Cloud's
+  auth endpoint.
   凭据仅存于本机。Android 6.0+ 使用**系统 KeyStore 中的 AES 密钥**加密（应用自身也读不回密钥），
-  并已关闭应用备份；桌面端存于 `config.local.json`（已被 `.gitignore` 排除）。仅在向阿里云鉴权时发送。
+  并已关闭应用备份；Windows 桌面端存于 **Windows 凭据管理器**（系统加密，可在「控制面板 → 凭据管理器」
+  查看或删除），仅在写入失败或非 Windows 系统上回退到 `config.local.json`（已被 `.gitignore` 排除）。
+  仅在向阿里云鉴权时发送。
 
 **What is written to storage / 会落盘的东西**
 

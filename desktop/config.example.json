@@ -1,9 +1,10 @@
 {
   "_说明": [
     "这是示例配置(不含任何真实凭据)。程序首次运行时会自动复制一份为 config.json。",
-    "请把 API Key 与 workspace_id 填进 config.json,或在程序界面里输入(会存到 config.local.json,该文件已被 .gitignore 排除)。",
+    "请把 API Key 与 workspace_id 填进 config.json,或在程序界面里输入(优先存入 Windows 凭据管理器,失败时回退 config.local.json,该文件已被 .gitignore 排除)。",
     "api_key  : 阿里云百炼控制台 -> API-KEY 管理 -> 创建,以 sk- 开头",
     "workspace_id : 百炼控制台 -> 业务空间列表,形如 llm-xxxxxxxx,每个账号不同",
+    "ui_language : 界面语言,zh(中文,默认)或 en(英文),界面右上角按钮也可切换",
     "不要把填好真实 key 的 config.json 提交到公开仓库。"
   ],
   "api_key": "",
@@ -61,5 +62,6 @@
       "enable_search": false
     }
   },
-  "active_preset": "english_teacher"
+  "active_preset": "english_teacher",
+  "ui_language": "zh"
 }

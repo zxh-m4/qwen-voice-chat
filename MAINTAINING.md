@@ -17,7 +17,9 @@
   **hashes are mandatory for every release**, not optional.
 - **Reproducibility**: builds use Python 3.11.9 (64-bit Windows) with `desktop/requirements.txt` pinned;
   hashes are specific to the build environment.
-- **Credentials**: Android stores them encrypted (AES-GCM + Android Keystore); the desktop keeps
-  `config.local.json` in cleartext (accepted trade-off: malware running as the same user could read
-  either form). `config.json` / `config.local.json` are git-ignored — **never commit them**.
+- **Credentials**: Android stores them encrypted (AES-GCM + Android Keystore); on Windows the desktop
+  stores them in the **Windows Credential Manager** (system-encrypted, via ctypes — no extra
+  dependency), falling back to `config.local.json` in cleartext only if that write fails or on
+  non-Windows systems (accepted trade-off: malware running as the same user could read either form).
+  `config.json` / `config.local.json` are git-ignored — **never commit them**.
 - **Never publish**: the trial APK (contains bundled credentials), keystore files, or logs.
