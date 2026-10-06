@@ -5,6 +5,8 @@
 - `AoqClientSdk-release.aar`
 - `libPluginOpus.so`(armeabi-v7a / arm64-v8a)
 
+> 注:自 v1.4 起应用仅打包 **arm64-v8a**(单架构瘦身)。两个架构的 so 均下载放置即可,构建时只会打入 arm64-v8a。
+
 ## 获取方式
 
 1. 访问阿里云百炼官方文档「实时通话 SDK 下载」页面(搜"百炼 realtime SDK 下载");

@@ -48,10 +48,6 @@ class Config:
     silence_gate: bool = True
     silence_gate_ms: int = 1500
     silence_threshold_rms: int = 600
-    voiceprint_enabled: bool = False  # 黑名单制,实测区分度不足默认关(EchoGuard 替代)
-    voiceprint_threshold: float = 0.50
-    voiceprint_buffer_ms: int = 500
-    voiceprint_model: str = ""   # 空 = 程序目录 models/3dspeaker_...onnx
     presets: dict = field(default_factory=dict)  # name -> Preset
     active_preset: str = ""
     ui_language: str = "zh"   # 界面语言(zh/en),见 rtchat/strings.py
@@ -219,8 +215,6 @@ def load_config(path: str) -> Config:
         "vad_silence_ms", "transcription_model", "input_sample_rate",
         "output_sample_rate", "frame_ms", "region_host",
         "silence_gate", "silence_gate_ms", "silence_threshold_rms",
-        "voiceprint_enabled", "voiceprint_threshold", "voiceprint_buffer_ms",
-        "voiceprint_model",
         "active_preset", "ui_language",
     }
     ws_local = str(local.get("workspace_id", "")).strip()

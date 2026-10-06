@@ -48,7 +48,8 @@ Release 页仅保留版本说明。
 qwen-voice-chat/
 ├── desktop/             Desktop app (Python 3.10+, Tkinter + sounddevice) — Windows / macOS / Linux
 │   ├── rtchat/          Core modules (protocol / session state machine / audio / silence gate)
-│   ├── tests/           143 unit tests
+│   ├── tests/           133 unit tests
+│   ├── tools/           Dev-only scripts: full-chain dialogue test, connect smoke, UI smoke, playback diagnostics
 │   ├── run.py           Entry point
 │   └── config.example.json  Config template (auto-copied to config.json on first run)
 ├── android/             Android app (Kotlin, Gradle 8.14 + JDK 17)
@@ -66,7 +67,7 @@ qwen-voice-chat/
 cd desktop
 pip install -r requirements.txt
 python run.py            # first launch asks for your Bailian credentials
-python -m pytest tests/  # 99 unit tests
+python -m pytest tests/  # 133 unit tests
 ```
 
 > **macOS / Linux**: the stack (Tkinter + PortAudio + websocket-client) is cross-platform and the

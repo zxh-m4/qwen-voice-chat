@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import base64
 import logging
-import os
 import queue
 import time
 import tkinter as tk
@@ -26,9 +25,7 @@ from .config import (
 )
 from .connection import RealtimeConnection
 from .gate import SilenceGate
-from .paths import app_dir
 from .session import RealtimeSession
-from .voice_gate import VoicePrintGate, make_embedder
 
 log = logging.getLogger(__name__)
 
@@ -114,7 +111,6 @@ def show_settings_dialog(
 class ChatApp:
     POLL_MS = 50
     USAGE_REFRESH_S = 2.0
-    _PLAYBACK_REF_BYTES = 96000  # ~2s @24kHz PCM16,黑名单基准的提取粒度
 
     def __init__(self, cfg: Config, config_path: str | None = None):
         self.config_path = config_path
@@ -123,14 +119,12 @@ class ChatApp:
         self.ui_q: queue.Queue = queue.Queue()
         self.player = Player(cfg.output_sample_rate)
         self.mic = Microphone(cfg.input_sample_rate, on_pcm=self._on_mic)
-        self._playback_buf = bytearray()
         self.gate = SilenceGate(
             threshold_rms=cfg.silence_threshold_rms,
             gate_ms=cfg.silence_gate_ms,
             frame_ms=cfg.frame_ms,
             enabled=cfg.silence_gate,
         )
-        self.vp_gate = self._build_voice_gate(cfg)
         # 注:回声防护(EchoGuard)已按用户决策移除——保持全双工插话打断;
         # 外放回环由"戴耳机"解决(见使用说明)。代码保留于 rtchat/echo_guard.py 备查。
         self._mic_started = False
@@ -138,20 +132,7 @@ class ChatApp:
         self._last_usage_ts = 0.0
         self._last_state = "connecting"
 
-        self.session = RealtimeSession(
-            cfg,
-            on_audio_delta=self._on_audio,
-            on_user_transcript=lambda t: self.ui_q.put(("user_text", t)),
-            on_assistant_text=lambda d: self.ui_q.put(("ai_delta", d)),
-            on_state=self._on_session_state,
-            on_error=lambda c, m: self.ui_q.put(("error", c, m)),
-        )
-        self.conn = RealtimeConnection(
-            cfg,
-            self.session,
-            on_ui=lambda e: self.ui_q.put(("conn", e)),
-            on_closed=lambda reason: self.ui_q.put(("closed", reason)),
-        )
+        self._build_session_and_conn()
 
         self._ai_open = False  # 当前 AI 文字行是否在流式追加
         self._last_stats_log = 0.0
@@ -169,72 +150,30 @@ class ChatApp:
     def _t(self, key: str) -> str:
         return strings.UI[self.lang][key]
 
-    # ---------- 声纹门(黑名单:只挡 AI 回声) ----------
+    # ---------- 会话构建 ----------
 
-    @staticmethod
-    def _build_voice_gate(cfg: Config) -> VoicePrintGate | None:
-        """模型缺失或加载失败时返回 None(直通,fail-open)。"""
-        if not cfg.voiceprint_enabled:
-            log.info("声纹门:配置关闭,直通")
-            return None
-        model_path = cfg.voiceprint_model or os.path.join(
-            app_dir(), "models", "3dspeaker_speech_campplus_sv_zh-cn_16k-common.onnx"
+    def _build_session_and_conn(self) -> None:
+        """会话不可复用:首次与重连(角色切换/改凭据)统一走这里重建 session/conn。"""
+        self.session = RealtimeSession(
+            self.cfg,
+            on_audio_delta=self._on_audio,
+            on_user_transcript=lambda t: self.ui_q.put(("user_text", t)),
+            on_assistant_text=lambda d: self.ui_q.put(("ai_delta", d)),
+            on_state=self._on_session_state,
+            on_error=lambda c, m: self.ui_q.put(("error", c, m)),
         )
-        if not os.path.isfile(model_path):
-            log.info("声纹门:模型缺失(%s),直通", model_path)
-            return None
-        gate = VoicePrintGate(
-            embedder=None,  # 先建壳,模型加载成功后注入
-            threshold=cfg.voiceprint_threshold,
-            buffer_ms=cfg.voiceprint_buffer_ms,
-            frame_ms=cfg.frame_ms,
-            threshold_rms=cfg.silence_threshold_rms,
+        self.conn = RealtimeConnection(
+            self.cfg,
+            self.session,
+            on_ui=lambda e: self.ui_q.put(("conn", e)),
+            on_closed=lambda reason: self.ui_q.put(("closed", reason)),
         )
-        embedder = make_embedder(model_path)
-        if embedder is None:
-            return None  # 加载失败,make_embedder 已记日志
-        gate._embedder = embedder
-        log.info(
-            "声纹门 ON(黑名单制):阈值 %.2f,基准来源=AI 播放音频实时提取",
-            cfg.voiceprint_threshold,
-        )
-        return gate
-
-    @staticmethod
-    def _resample_int16(pcm: bytes, sr_in: int, sr_out: int) -> bytes:
-        """int16 单声道线性重采样(替代 Python 3.13 已移除的 audioop.ratecv)。"""
-        import numpy as np
-
-        if sr_in == sr_out or not pcm:
-            return pcm
-        a = np.frombuffer(pcm, dtype=np.int16).astype(np.float32)
-        if a.size == 0:
-            return pcm
-        n_out = int(a.size * sr_out / sr_in)
-        if n_out <= 0:
-            return b""
-        idx = np.linspace(0.0, a.size - 1, n_out)
-        out = np.interp(idx, np.arange(a.size), a)
-        return out.astype(np.int16).tobytes()
 
     def _on_audio(self, b64: str) -> None:
-        """AI 音频下行:计费统计 + 播放 + (声纹门开启时)收集黑名单基准。"""
+        """AI 音频下行:计费统计 + 播放。"""
         pcm = base64.b64decode(b64)
         self.meter.add_downlink(len(pcm), self.cfg.output_sample_rate)
         self.player.write(pcm)
-        if self.vp_gate is None or not self.vp_gate.enabled:
-            return
-        try:
-            self._playback_buf.extend(pcm)
-            if len(self._playback_buf) >= self._PLAYBACK_REF_BYTES:
-                pcm24k = bytes(self._playback_buf)
-                self._playback_buf.clear()
-                pcm16k = self._resample_int16(pcm24k, self.cfg.output_sample_rate, 16000)
-                emb = self.vp_gate.embed(pcm16k)
-                if emb is not None:
-                    self.vp_gate.add_reference(emb)
-        except Exception:
-            log.exception("提取 AI 音色基准失败(忽略)")
 
     # ---------- UI 搭建 ----------
 
@@ -353,20 +292,7 @@ class ChatApp:
 
     def _rebuild_connection(self) -> None:
         """会话不可复用:断开后重建 session/conn(角色切换也走这里,换人设清上下文)。"""
-        self.session = RealtimeSession(
-            self.cfg,
-            on_audio_delta=self._on_audio,
-            on_user_transcript=lambda t: self.ui_q.put(("user_text", t)),
-            on_assistant_text=lambda d: self.ui_q.put(("ai_delta", d)),
-            on_state=self._on_session_state,
-            on_error=lambda c, m: self.ui_q.put(("error", c, m)),
-        )
-        self.conn = RealtimeConnection(
-            self.cfg,
-            self.session,
-            on_ui=lambda e: self.ui_q.put(("conn", e)),
-            on_closed=lambda reason: self.ui_q.put(("closed", reason)),
-        )
+        self._build_session_and_conn()
 
     def _on_preset_change(self, _event) -> None:
         labels = strings.UI[self.lang]["presets"]
@@ -422,11 +348,7 @@ class ChatApp:
     def _on_mic(self, pcm: bytes) -> None:
         if not self.gate.feed(pcm):  # 静音门:停发期省下输入 token
             return
-        if self.vp_gate is not None:  # 声纹门(默认关):黑名单制备用
-            for f in self.vp_gate.feed(pcm):
-                self.conn.feed_mic(f)
-        else:
-            self.conn.feed_mic(pcm)
+        self.conn.feed_mic(pcm)
 
     def _on_session_state(self, state: str) -> None:
         if state == "interrupted":

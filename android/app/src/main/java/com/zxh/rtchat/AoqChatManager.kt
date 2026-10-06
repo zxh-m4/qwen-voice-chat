@@ -96,22 +96,7 @@ class AoqChatManager(
     // ---------- 对外生命周期 ----------
 
     fun start(preset: SessionPresets.Preset) {
-        this.preset = preset
-        closed = false
-        listener.onState("connecting")
-        executor.execute {
-            try {
-                debug("正在换取连接令牌…")
-                val cfg = exchangeToken(credentialsProvider())
-                debug("令牌 OK,中继节点 ${cfg.relayEndpoints.size} 个,正在连接…")
-                val eng = initEngine()
-                connect(eng, cfg)
-            } catch (e: Exception) {
-                Log.e(TAG, "start failed", e)
-                listener.onError("start", e.message ?: e.toString())
-                listener.onState("closed")
-            }
-        }
+        connectAsync(preset, teardownFirst = false)
     }
 
     private fun debug(msg: String) {
@@ -121,10 +106,15 @@ class AoqChatManager(
 
     fun switchPreset(preset: SessionPresets.Preset) {
         // 内部重连:不发 closed 状态(UI 的 running 保持 true,避免状态竞态导致双连接)
+        connectAsync(preset, teardownFirst = true)
+    }
+
+    /** 统一连接序列(换 token -> 建引擎 -> 连接)。teardownFirst=true 用于换老师内部重连。 */
+    private fun connectAsync(preset: SessionPresets.Preset, teardownFirst: Boolean) {
         closed = true
         listener.onState("connecting")
         executor.execute {
-            teardown()
+            if (teardownFirst) teardown()
             this@AoqChatManager.preset = preset
             closed = false
             try {
@@ -134,7 +124,7 @@ class AoqChatManager(
                 val eng = initEngine()
                 connect(eng, cfg)
             } catch (e: Exception) {
-                Log.e(TAG, "switchPreset failed", e)
+                Log.e(TAG, "connect failed", e)
                 listener.onError("start", e.message ?: e.toString())
                 listener.onState("closed")
             }

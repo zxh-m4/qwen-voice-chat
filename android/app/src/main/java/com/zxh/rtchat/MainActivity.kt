@@ -240,13 +240,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                 }
                 store.save(key, ws)
                 dialog.dismiss()
-                if (running) manager.stop()
-                errText.text = ""
-                running = true
-                btnToggle.text = getString(R.string.btn_disconnect)
-                manager.start(SessionPresets.byKey(presetKeyAt(spinner.selectedItemPosition)))
-                requestMicIfNeeded()
-                scheduleConnectTimeout()
+                startConnection()
             }
         }
         dialog.show()
@@ -314,18 +308,24 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         }
     }
 
-    /** 启动会话(等价于点「连接」)。按钮文字从第一帧起与真实状态一致。 */
+    /**
+     * 启动会话(点「连接」与设置对话框保存后统一走这里)。
+     * 按钮文字从第一帧起与真实状态一致。
+     */
     private fun startConnection() {
         if (!store.credentials.isComplete) {
             showSettingsDialog(required = true)
             return
         }
+        if (running) manager.stop() // 通话中改凭据重连:先断旧会话
         errText.text = ""
         manager.start(SessionPresets.byKey(presetKeyAt(spinner.selectedItemPosition)))
         running = true
         btnToggle.text = getString(R.string.btn_disconnect)
+        usageHandler.removeCallbacks(usageTick) // 无论从哪条路径进来都恰好一个费用刷新器
         usageHandler.post(usageTick)
         scheduleConnectTimeout()
+        requestMicIfNeeded() // 已授权时是空操作
     }
 
     private fun requestMicIfNeeded() {

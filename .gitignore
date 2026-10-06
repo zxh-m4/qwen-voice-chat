@@ -30,9 +30,6 @@ config.local.json
 desktop/config.json
 *.wav
 *.npy
-# 声纹模型权重(体积大,且非本项目产出)
-*.onnx
-models/
 
 # ---- 安卓版 ----
 android/.gradle/
@@ -43,6 +40,9 @@ android/app/build/
 *.apk
 *.aar
 android/app/libs/*.so
+# AOQ SDK 的 Opus 插件 so 位于子目录,一并排除(SDK 二进制绝不入库)
+android/app/libs/arm64-v8a/
+android/app/libs/armeabi-v7a/
 
 # ---- 签名密钥(绝不入库) ----
 keystore/

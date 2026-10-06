@@ -21,10 +21,10 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
         ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+            abiFilters += listOf("arm64-v8a") // 单架构瘦身:32 位老设备不再支持(约省8MB)
         }
     }
 
