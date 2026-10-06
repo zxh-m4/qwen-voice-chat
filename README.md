@@ -10,12 +10,14 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 ---
 
-## ⬇️ Download / 下载
+## 📦 No prebuilt binaries / 不提供预编译包
 
-Prebuilt packages are attached to the **[Releases](https://github.com/zxh-m4/qwen-voice-chat/releases)** page:
+This is a personal, non-commercial learning project. **No prebuilt APK/EXE packages are
+distributed here** — please build from source (see [Quick Start](#quick-start--快速开始) below).
+Releases are kept as version notes only.
 
-- **Android**: `RealtimeVoiceChat-v1.3.apk` — install on Android 6.0+ (allow "unknown sources")
-- **Windows**: `RealtimeVoiceChat-v1.3-Windows.zip` — unzip, then double-click `实时外语对话.exe`
+本项目为个人业余学习作品，**不对外分发预编译安装包**，请按下方「快速开始」从源码自行构建；
+Release 页仅保留版本说明。
 
 > The clients contain **no API keys**. On first launch you will be asked for *your own*
 > Alibaba Cloud Bailian API Key and Workspace ID (see [Getting Your API Key](#getting-your-api-key-alibaba-cloud-bailian) below).
@@ -83,14 +85,6 @@ cd android
 
 Variants: `official` = no bundled credentials (asks on first launch) ·
 `trial` = reserved slot for bundled credentials (shipped empty).
-
-**Checksums (SHA-256) / 校验和**
-
-- `RealtimeVoiceChat-v1.3.apk` — `5647d151dd68a0cdc281e15d90ada9b2a642f9a4b5f6b0333cb609b6bc6473ad`
-- `RealtimeVoiceChat-v1.3-Windows.zip` — `43574c6f0886d878fba33a1271a46ccac3da157e0609d4f71669f17546331177`
-
-**APK signing certificate (SHA-256) / 签名证书指纹**:
-`a234361aedf1d82cb2b24fa5628dd6dc26c2cadc46356dc8ab45ecad4463e193`
 
 ## Getting Your API Key (Alibaba Cloud Bailian) / 如何获取 API Key
 
