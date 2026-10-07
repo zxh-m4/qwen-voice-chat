@@ -26,7 +26,7 @@ class SettingsStore(context: Context) {
         get() = readCred(KEY_WS)
         set(value) = writeCred(KEY_WS, value)
 
-    /** 界面语言("en" / "zh"),默认英文。修改后需 recreate() 才生效。 */
+    /** 界面语言("en" / "zh"),默认中文。修改后需 recreate() 才生效。 */
     var appLanguage: String
         get() = LocaleHelper.normalize(prefs.getString("app_lang", LocaleHelper.DEFAULT))
         set(value) = prefs.edit().putString("app_lang", LocaleHelper.normalize(value)).apply()

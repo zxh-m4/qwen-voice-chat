@@ -13,18 +13,18 @@ import java.util.Locale
  * 相比 AppCompatDelegate.setApplicationLocales 的好处是零额外依赖(appcompat 已引入,
  * 但 delegate 方案在部分国产 ROM 上生效不稳定),且切换后只需 recreate() 立即生效。
  *
- * 默认语言 = 英文:res/values 为英文,res/values-zh 为中文。
+ * 默认语言 = 中文:res/values 为中文,res/values-en 为英文。
  */
 object LocaleHelper {
 
     const val LANG_EN = "en"
     const val LANG_ZH = "zh"
 
-    /** 支持的语言,顺序即选择弹窗里的顺序。 */
-    val SUPPORTED = listOf(LANG_EN, LANG_ZH)
+    /** 支持的语言,顺序即选择弹窗里的顺序(中文在前)。 */
+    val SUPPORTED = listOf(LANG_ZH, LANG_EN)
 
-    /** 未存储过时的默认语言:英文。 */
-    const val DEFAULT = LANG_EN
+    /** 未存储过时的默认语言:中文(res/values 为中文,res/values-en 为英文)。 */
+    const val DEFAULT = LANG_ZH
 
     /** 用指定语言包装 Context(在 attachBaseContext 中调用)。 */
     fun wrap(context: Context, lang: String): Context {
@@ -43,7 +43,7 @@ object LocaleHelper {
     fun shortLabelRes(lang: String): Int =
         if (lang == LANG_ZH) R.string.lang_btn_zh else R.string.lang_btn_en
 
-    /** 归一化:未知值回落到默认(英文)。 */
+    /** 归一化:未知值回落到默认(中文)。 */
     fun normalize(lang: String?): String =
         if (lang in SUPPORTED) lang!! else DEFAULT
 }
