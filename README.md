@@ -14,10 +14,10 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 This is a personal, non-commercial learning project. **No prebuilt APK/EXE packages are
 distributed here** — please build from source (see [Quick Start](#quick-start--快速开始) below).
-Releases are kept as version notes only.
+Releases are kept as version notes only. Full version history since v1.0: see [CHANGELOG.md](CHANGELOG.md).
 
 本项目为个人业余学习作品，**不对外分发预编译安装包**，请按下方「快速开始」从源码自行构建；
-Release 页仅保留版本说明。
+Release 页仅保留版本说明;完整版本历史(自 v1.0 起)见 [CHANGELOG.md](CHANGELOG.md)。
 
 > The clients contain **no API keys**. On first launch you will be asked for *your own*
 > Alibaba Cloud Bailian API Key and Workspace ID (see [Getting Your API Key](#getting-your-api-key-alibaba-cloud-bailian) below).
