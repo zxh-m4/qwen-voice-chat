@@ -5,6 +5,8 @@
     "api_key  : 阿里云百炼控制台 -> API-KEY 管理 -> 创建,以 sk- 开头",
     "workspace_id : 百炼控制台 -> 业务空间列表,形如 llm-xxxxxxxx,每个账号不同",
     "ui_language : 界面语言,zh(中文,默认)或 en(英文),界面右上角按钮也可切换",
+    "mic_gain_level : 「麦克风灵敏度」档位(1-5):1=0dB(默认,原样) 2=-6dB 3=-12dB 4=-18dB 5=-24dB;整体压低上传音量(周围声音不易被误判为你的发言),界面「设置」里可选。",
+    "vad_type : 语音检测:server_vad(默认)或 null(禁用 VAD、手动触发);一般不用改。",
     "不要把填好真实 key 的 config.json 提交到公开仓库。"
   ],
   "api_key": "",
@@ -14,6 +16,7 @@
   "transcription_model": "gummy-realtime-v1",
   "vad_type": "server_vad",
   "vad_silence_ms": 800,
+  "mic_gain_level": 1,
   "silence_gate": true,
   "silence_gate_ms": 1500,
   "silence_threshold_rms": 600,

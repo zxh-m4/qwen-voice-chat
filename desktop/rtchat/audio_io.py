@@ -10,6 +10,19 @@ from .frames import PlaybackQueue
 log = logging.getLogger(__name__)
 
 
+def apply_gain(pcm: bytes, factor: float) -> bytes:
+    """整体缩放 PCM16 单声道音频(「麦克风灵敏度」:压低上传音量)。
+
+    factor >= 1.0(0 dB)时原样返回,零开销;否则按系数缩放并防溢出。
+    """
+    if factor >= 1.0:
+        return pcm
+    import numpy as np
+
+    arr = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) * factor
+    return np.clip(arr, -32768, 32767).astype(np.int16).tobytes()
+
+
 class Microphone:
     """把麦克风数据以 PCM bytes 推给 on_pcm 回调(PortAudio 线程)。"""
 

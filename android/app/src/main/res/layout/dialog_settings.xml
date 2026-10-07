@@ -1,57 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 外层 ScrollView:设置项变多(7 档 + 说明 + 声明),小屏上会超出对话框高度,
+     加滚动保证最后一行说明/声明始终可看。 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:layout_height="wrap_content">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/dlg_settings_intro"
-        android:textSize="14sp" />
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/dlg_key_label"
-        android:textSize="12sp"
-        android:textColor="#888888" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/dlg_settings_intro"
+            android:textSize="14sp" />
 
-    <EditText
-        android:id="@+id/editApiKey"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints=""
-        android:hint="@string/dlg_key_hint"
-        android:importantForAutofill="no"
-        android:inputType="textPassword"
-        android:textSize="14sp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/dlg_key_label"
+            android:textSize="12sp"
+            android:textColor="#888888" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/dlg_ws_label"
-        android:textSize="12sp"
-        android:textColor="#888888" />
+        <EditText
+            android:id="@+id/editApiKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:hint="@string/dlg_key_hint"
+            android:importantForAutofill="no"
+            android:inputType="textPassword"
+            android:textSize="14sp" />
 
-    <EditText
-        android:id="@+id/editWorkspace"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints=""
-        android:hint="@string/dlg_ws_hint"
-        android:importantForAutofill="no"
-        android:inputType="textPassword"
-        android:textSize="14sp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/dlg_ws_label"
+            android:textSize="12sp"
+            android:textColor="#888888" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/dlg_disclaimer"
-        android:textSize="12sp"
-        android:textColor="#888888" />
-</LinearLayout>
+        <EditText
+            android:id="@+id/editWorkspace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:hint="@string/dlg_ws_hint"
+            android:importantForAutofill="no"
+            android:inputType="textPassword"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="#E0E0E0" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/dlg_mic_label"
+            android:textSize="12sp"
+            android:textColor="#888888" />
+
+        <RadioGroup
+            android:id="@+id/radioMic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/radioMic1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_1"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_2"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_3"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_4"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_5"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_6"
+                android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioMic7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_7"
+                android:textSize="14sp" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/mic_note"
+            android:textSize="12sp"
+            android:textColor="#888888" />
+
+    </LinearLayout>
+</ScrollView>

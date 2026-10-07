@@ -93,7 +93,9 @@ object SessionPresets {
 
     fun byKey(key: String): Preset = ALL.firstOrNull { it.key == key } ?: default()
 
-    /** 构建 session.update 事件 JSON——结构照抄官方 iOS Demo;voice 用预设专属音色。 */
+    /** 构建 session.update 事件 JSON——结构照抄官方 iOS Demo;voice 用预设专属音色。
+     *  语音检测固定 server_vad:服务端阈值档位与 semantic_vad 均实测无效(已移除),
+     *  "环境声被当成发言"改由端侧「麦克风灵敏度」整体压低解决。 */
     fun buildSessionUpdate(preset: Preset): JSONObject {
         val session = JSONObject()
             .put("modalities", org.json.JSONArray(listOf("text", "audio")))
@@ -103,7 +105,6 @@ object SessionPresets {
             .put("instructions", preset.instructions)
             .put("turn_detection", JSONObject()
                 .put("type", "server_vad")
-                .put("threshold", 0.5)
                 .put("silence_duration_ms", 800))
             .put("max_tokens", 16384)
             .put("repetition_penalty", 1.05)

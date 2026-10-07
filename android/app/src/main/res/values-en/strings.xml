@@ -55,7 +55,16 @@
     <string name="dlg_key_hint">sk-xxxxxxxx</string>
     <string name="dlg_ws_label">Workspace ID (Bailian console → Workspace list; unique per account — use your own; e.g. llm-xxxxxxxx)</string>
     <string name="dlg_ws_hint">llm-xxxxxxxx</string>
-    <string name="dlg_disclaimer">Disclaimer: a personal hobby project, unaffiliated with Alibaba Cloud or Qwen official. You must register your own Alibaba Cloud Bailian account and enter your own API Key; credentials stay on this device. Charges are borne by your own account. Shared free of charge, for learning and exchange only; not for commercial use.</string>
+    <string name="dlg_mic_label">Mic sensitivity</string>
+    <string name="mic_1">Very high — default, upload as-is</string>
+    <string name="mic_2">High — slightly lowered (−6 dB)</string>
+    <string name="mic_3">Medium — noticeably lowered (−12 dB)</string>
+    <string name="mic_4">Low — surrounding sounds mostly cut out (−18 dB)</string>
+    <string name="mic_5">Very low — only close, loud speech gets through (−24 dB)</string>
+    <string name="mic_6">Extremely low — pressed much harder (−32 dB)</string>
+    <string name="mic_7">Maximum — pressed to the minimum (−40 dB)</string>
+    <string name="mic_note">Lowers the overall volume sent to the service: surrounding voices are less likely to be taken as you speaking. When lowered, speak closer to the mic and clearly. Takes effect on the next connection.</string>
+    <!-- Disclaimer kept only in the help page, not repeated here -->
 
     <!-- 运行时提示 -->
     <string name="err_connect_timeout">Connection timed out (25s): check that your network can reach Alibaba Cloud, then retry</string>

@@ -54,6 +54,7 @@ HELP_ZH = """本应用是为了创造一个外语学习的语境环境,是本人
 
 【小提示】
 · 回环问题:外放时它可能听到自己的声音(甚至打断自己)——请戴耳机使用即可解决(本程序不做自动回声防护,以保证你随时可以插话打断)
+· 字幕有错字不代表没听懂——字幕由一个「字幕模型」生成,遇到发音不标准、有口音或专业词时容易写错,而负责对话的语音模型直接听你的原始声音,识别能力比字幕模型更强
 · 没声音?检查系统声音设置里选对输出设备、音量没有静音
 · 连接中断就点「连接」重新连上
 · 运行日志在程序目录 app.log,只记录事件类型与诊断信息
@@ -99,6 +100,7 @@ Switch from the dropdown; switching starts a new conversation. Each tutor locks 
 
 [Tips]
 · Echo: on speakers this app may hear its own voice (and even interrupt itself) — wearing headphones solves it (this program does no automatic echo protection, so you can interrupt it at any time)
+· Typos in the caption do not mean it misunderstood you — the caption comes from a separate "subtitle model" that often mis-spells words with imperfect pronunciation, accents or jargon, while the voice model handling the conversation listens to your raw audio directly and recognizes your speech more accurately than the subtitle model does
 · No sound? Check that the correct output device is selected and not muted in your system sound settings
 · If the connection drops, click "Connect" to reconnect
 · The run log lives in app.log next to the program, recording event types and diagnostics only
@@ -143,6 +145,18 @@ UI: dict[str, dict] = {
         "settings_key_saved": "已保存(如需更换,请输入新的 Key)",
         "settings_ws_label": "业务空间 ID(百炼控制台 → 业务空间列表,形如 llm-xxxxxxxx)",
         "settings_ws_saved": "已保存(如需更换,请输入新的业务空间 ID)",
+        "settings_mic_label": "麦克风灵敏度",
+        "settings_mic_1": "很高 —— 默认,原样上传",
+        "settings_mic_2": "高 —— 整体压低一点(−6 dB)",
+        "settings_mic_3": "中 —— 整体压低较多(−12 dB)",
+        "settings_mic_4": "低 —— 周围声音基本传不进去(−18 dB)",
+        "settings_mic_5": "很低 —— 几乎只剩贴近大声说的声音(−24 dB)",
+        "settings_mic_6": "极低 —— 压得更狠,需更靠近说(−32 dB)",
+        "settings_mic_7": "极限 —— 压到最低,要贴麦说(−40 dB)",
+        "settings_mic_note": (
+            "整体压低上传音量:周围的声音更不容易被当成你在说话;"
+            "调低后请靠近麦克风、说得清楚一些。更改在下次连接后生效。"
+        ),
         "settings_err_key_required": "请填写 API Key(sk- 开头)",
         "settings_err_key_prefix": "API Key 应以 sk- 开头",
         "settings_err_ws_required": "请填写业务空间 ID(形如 llm-xxxxxxxx)",
@@ -201,6 +215,19 @@ UI: dict[str, dict] = {
         "settings_key_saved": "Saved (enter a new one only if you want to replace it)",
         "settings_ws_label": "Workspace ID (Bailian console → Workspace list, looks like llm-xxxxxxxx)",
         "settings_ws_saved": "Saved (enter a new one only if you want to replace it)",
+        "settings_mic_label": "Mic sensitivity",
+        "settings_mic_1": "Very high — default, upload as-is",
+        "settings_mic_2": "High — slightly lowered (−6 dB)",
+        "settings_mic_3": "Medium — noticeably lowered (−12 dB)",
+        "settings_mic_4": "Low — surrounding sounds mostly cut out (−18 dB)",
+        "settings_mic_5": "Very low — only close, loud speech gets through (−24 dB)",
+        "settings_mic_6": "Extremely low — pressed much harder (−32 dB)",
+        "settings_mic_7": "Maximum — pressed to the minimum (−40 dB)",
+        "settings_mic_note": (
+            "Lowers the overall volume sent to the service: surrounding voices are less likely to"
+            " be taken as you speaking. When lowered, speak closer to the mic and clearly."
+            " Takes effect on the next connection."
+        ),
         "settings_err_key_required": "Please enter your API Key (starts with sk-)",
         "settings_err_key_prefix": "API Key should start with sk-",
         "settings_err_ws_required": "Please enter your Workspace ID (looks like llm-xxxxxxxx)",

@@ -35,7 +35,9 @@ Release 页仅保留版本说明;完整版本历史(自 v1.0 起)见 [CHANGELOG.
   | 日本語 | Ono Anna | Español | Sonrisa |
   | Русский | Katerina | Français | Emilien |
   | 한국어 | Sohee | Deutsch | Ingrid |
-- **Live subtitles** for both sides.
+- **Live subtitles** for both sides (captions are produced by a separate subtitle model — see the in-app help for why their typos do not affect the conversation).
+- **Mic sensitivity** (7 levels, 0 to −40 dB): lowers the uploaded audio volume so surrounding
+  voices are less likely to be treated as you speaking — then speak closer to the mic / louder.
 - **Bilingual UI** (Chinese / English, default Chinese): switch with the top-right `EN / 中文`
   button; the choice is remembered across launches.
 - **Usage estimates**: this-session and process-lifetime totals shown at the bottom while chatting.
@@ -48,7 +50,7 @@ Release 页仅保留版本说明;完整版本历史(自 v1.0 起)见 [CHANGELOG.
 qwen-voice-chat/
 ├── desktop/             Desktop app (Python 3.10+, Tkinter + sounddevice) — Windows / macOS / Linux
 │   ├── rtchat/          Core modules (protocol / session state machine / audio / silence gate)
-│   ├── tests/           133 unit tests
+│   ├── tests/           152 unit tests
 │   ├── tools/           Dev-only scripts: full-chain dialogue test, connect smoke, UI smoke, playback diagnostics
 │   ├── run.py           Entry point
 │   └── config.example.json  Config template (auto-copied to config.json on first run)
@@ -67,7 +69,7 @@ qwen-voice-chat/
 cd desktop
 pip install -r requirements.txt
 python run.py            # first launch asks for your Bailian credentials
-python -m pytest tests/  # 133 unit tests
+python -m pytest tests/  # 152 unit tests
 ```
 
 > **macOS / Linux**: the stack (Tkinter + PortAudio + websocket-client) is cross-platform and the

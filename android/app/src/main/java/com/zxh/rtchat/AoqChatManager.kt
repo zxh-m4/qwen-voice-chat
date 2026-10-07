@@ -18,6 +18,7 @@ import java.util.concurrent.Executors
 class AoqChatManager(
     private val appContext: Context,
     private val credentialsProvider: () -> SettingsStore.Credentials,
+    private val micGainProvider: () -> Float = { 1.0f },
     private val listener: ChatListener,
 ) : AoqClientListener() {
 
@@ -93,6 +94,9 @@ class AoqChatManager(
     @Volatile private var gateMuted = false
     @Volatile private var lastCaptureAtMs = 0L
 
+    /** 最近一次主动拆除连接的时刻:用于忽略"旧引擎迟到的 Disconnected 通知",避免状态竞态。 */
+    @Volatile private var lastTeardownAtMs = 0L
+
     // ---------- 对外生命周期 ----------
 
     fun start(preset: SessionPresets.Preset) {
@@ -152,6 +156,7 @@ class AoqChatManager(
         gateFailedOpen = false
         gateMuted = false
         lastCaptureAtMs = 0L
+        lastTeardownAtMs = System.currentTimeMillis()
         unregisterRouteListener()
         try {
             abandonAudioFocus()
@@ -598,18 +603,25 @@ class AoqChatManager(
                     }
                 }
 
-                /** 麦克风采帧:喂给静音门决定是否继续上行。 */
-                override fun onCapturedAudioFrame(frame: AoqClientEngine.AoqAudioFrameData) {
-                    if (!gateEnabled || gateFailedOpen) return
+                /**
+                 * 处理后的采集帧(3A 之后、编码发布之前),唯一的"上行写"入口:
+                 * ①静音门统计(先于缩放,保证按原始音量判定);
+                 * ②「麦克风灵敏度」就地压低音频(经 ReadWrite 观察者生效)。
+                 * 该回调运行在 SDK 音频线程:只做就地改帧,不做耗时操作。
+                 */
+                override fun onProcessCapturedAudioFrame(frame: AoqClientEngine.AoqAudioFrameData) {
                     val data = frame.dataPtr ?: return
                     val sps = frame.samplesPerSec
                     if (sps <= 0) return
                     lastCaptureAtMs = System.currentTimeMillis()
-                    if (silenceGate.framesIn == 0L) {
-                        debug("帧尺寸校核(上行):${sps}Hz ${frame.dataSize}B -> %.2fms/帧".format(
-                            Locale.US, frameMsOf(frame)))
+                    if (gateEnabled && !gateFailedOpen) {
+                        if (silenceGate.framesIn == 0L) {
+                            debug("帧尺寸校核(上行):${sps}Hz ${frame.dataSize}B -> %.2fms/帧".format(
+                                Locale.US, frameMsOf(frame)))
+                        }
+                        applyUplink(silenceGate.feed(data, frameMsOf(frame)))
                     }
-                    applyUplink(silenceGate.feed(data, frameMsOf(frame)))
+                    MicGain.applyInPlace(data, frame.dataSize, micGainProvider())
                 }
             }
             engine?.setAudioFrameObserver(observer)
@@ -624,24 +636,19 @@ class AoqChatManager(
                 cfgDown,
             ) ?: -1
             debug("音频观察者(下行) rc=$rcObs")
-            // 上行观察者只在静音门开启时才注册。
-            // 原因:SDK 只有一个 setAudioFrameObserver 入口,两次 enableAudioFrameObserver
-            // 是否为「叠加注册」未经验证 —— 真机上观察到开启后上行失去响应,
-            // 因此默认不注册第二个观察源,行为与原版完全一致。
-            if (gateEnabled) {
-                val rcObsUp = engine?.enableAudioFrameObserver(
-                    true,
-                    AoqClientEngine.AoqAudioSource.AoqAudioSourceCaptured,
-                    AoqClientEngine.AoqAudioObserverConfig().apply {
-                        sampleRate = 16000
-                        channels = 1
-                        mode = AoqClientEngine.AoqAudioObserverMode.AoqAudioObserverModeReadOnly
-                    },
-                ) ?: -1
-                debug("音频观察者(上行) rc=$rcObsUp")
-            } else {
-                debug("上行观察者:静音门已关闭,不注册(与原版行为一致)")
-            }
+            // 上行观察者:读写模式,承载「麦克风灵敏度」的就地压低(以及静音门统计)。
+            // 多源注册(下行只读 + 上行读写)对应 SDK 的 4 个独立回调,属设计用法;
+            // 若真机出现上行异常,先把灵敏度档位调回「很高」(0 dB)排除增益因素。
+            val rcObsUp = engine?.enableAudioFrameObserver(
+                true,
+                AoqClientEngine.AoqAudioSource.AoqAudioSourceProcessCaptured,
+                AoqClientEngine.AoqAudioObserverConfig().apply {
+                    sampleRate = 16000
+                    channels = 1
+                    mode = AoqClientEngine.AoqAudioObserverMode.AoqAudioObserverModeReadWrite
+                },
+            ) ?: -1
+            debug("音频观察者(上行/读写) rc=$rcObsUp")
         } catch (e: Exception) {
             debug("音频观察者异常:${e.message}")
         }
@@ -750,7 +757,14 @@ class AoqChatManager(
                 listener.onState("closed")
             }
             AoqClientEngine.AoqConnectionStatus.AoqConnectionStatusDisconnected -> {
-                if (!closed) listener.onState("closed")
+                // 防竞态:刚主动拆过连接(改设置/切角色)时,旧引擎的 Disconnected 通知可能迟到,
+                // 照常上报会把重连后的新连接状态刷成"已断开"(PC 版踩过同款坑)。
+                val sinceTeardown = System.currentTimeMillis() - lastTeardownAtMs
+                if (!closed && sinceTeardown > 2000) {
+                    listener.onState("closed")
+                } else if (!closed) {
+                    AppLog.w("忽略迟到的 Disconnected(主动拆除 ${sinceTeardown}ms 前)")
+                }
             }
             else -> listener.onState("connecting")
         }

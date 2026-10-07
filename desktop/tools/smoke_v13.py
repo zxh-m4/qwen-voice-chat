@@ -11,13 +11,14 @@ import tempfile
 import tkinter as tk
 from tkinter import ttk
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # desktop/
+sys.path.insert(0, BASE_DIR)
 
 from rtchat import connection  # noqa: E402
 from rtchat.app import ChatApp, show_settings_dialog  # noqa: E402
 from rtchat.config import load_config  # noqa: E402
 
-REAL_CONFIG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+REAL_CONFIG = os.path.join(BASE_DIR, "config.json")
 
 
 def all_widgets(w):

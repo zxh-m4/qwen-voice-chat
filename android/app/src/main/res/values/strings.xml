@@ -50,12 +50,21 @@
     <string name="toast_need_ws">请填写业务空间 ID(形如 llm-xxxxxxxx)</string>
 
     <!-- 设置弹窗(布局) -->
-    <string name="dlg_settings_intro">首次使用需填入你自己的阿里云百炼凭据(仅保存在本机,不上传):</string>
+    <string name="dlg_settings_intro">填入你自己的阿里云百炼凭据(仅保存在本机,不上传):</string>
     <string name="dlg_key_label">API Key(百炼控制台 → API-KEY 管理 → 创建,sk- 开头)</string>
     <string name="dlg_key_hint">sk-xxxxxxxx</string>
     <string name="dlg_ws_label">业务空间 ID(百炼控制台 → 业务空间列表;**每个账号不同,请填自己的**,形如 llm-xxxxxxxx)</string>
     <string name="dlg_ws_hint">llm-xxxxxxxx</string>
-    <string name="dlg_disclaimer">声明:本应用为个人业余学习作品,与阿里云及通义官方无关;使用时需自行注册阿里云百炼账号并填写自己的 API Key,凭据仅存本机。调用费用由你的账号承担;本应用免费分享、仅供学习交流,请勿用于商业用途。</string>
+    <string name="dlg_mic_label">麦克风灵敏度</string>
+    <string name="mic_1">很高 —— 默认,原样上传</string>
+    <string name="mic_2">高 —— 整体压低一点(−6 dB)</string>
+    <string name="mic_3">中 —— 整体压低较多(−12 dB)</string>
+    <string name="mic_4">低 —— 周围声音基本传不进去(−18 dB)</string>
+    <string name="mic_5">很低 —— 几乎只剩贴近大声说的声音(−24 dB)</string>
+    <string name="mic_6">极低 —— 压得更狠,需更靠近说(−32 dB)</string>
+    <string name="mic_7">极限 —— 压到最低,要贴麦说(−40 dB)</string>
+    <string name="mic_note">整体压低上传音量:周围的声音更不容易被当成你在说话;调低后请靠近麦克风、说得清楚一些。更改在下次连接后生效。</string>
+    <!-- 声明只在「使用说明」页保留一处,设置里不再重复 -->
 
     <!-- 运行时提示 -->
     <string name="err_connect_timeout">连接超时(25秒未就绪):请确认手机网络可访问阿里云,或稍后重试</string>

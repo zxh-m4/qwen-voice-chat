@@ -10,6 +10,13 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
+## v1.5 — 2026-10-07
+- **Mic sensitivity** — seven levels (0 / −6 / −12 / −18 / −24 / −32 / −40 dB) that lower the uploaded audio volume, so surrounding voices are less likely to be taken as you speaking (speak closer / louder to compensate)
+- Removed two settings that real-device testing proved ineffective: server-side VAD threshold levels, and `semantic_vad`
+- Fixed a reconnect race that could show a wrong connection status right after changing settings
+- Help page: clarified that typos in the caption do not affect the conversation (subtitles come from a separate subtitle model)
+- Desktop applies the gain to the captured audio before upload; Android rewrites the uplink frame via the SDK's read-write audio observer
+
 ## v1.4 — 2026-10-06
 - Code cleanup and repo slimming, arm64-only build (APK 14.2 → 9.8 MB)
 - First-launch usage-line fix; prebuilt packages discontinued (source-only releases)

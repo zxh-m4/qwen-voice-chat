@@ -31,6 +31,11 @@ class SettingsStore(context: Context) {
         get() = LocaleHelper.normalize(prefs.getString("app_lang", LocaleHelper.DEFAULT))
         set(value) = prefs.edit().putString("app_lang", LocaleHelper.normalize(value)).apply()
 
+    /** 「麦克风灵敏度」档位(1-7):1=0dB 原样(默认)… 7=-40dB。修改后下次连接生效。 */
+    var micGainLevel: Int
+        get() = MicGain.normalize(prefs.getInt("mic_gain_level", MicGain.DEFAULT))
+        set(value) = prefs.edit().putInt("mic_gain_level", MicGain.normalize(value)).apply()
+
     val credentials: Credentials
         get() {
             val k = apiKey

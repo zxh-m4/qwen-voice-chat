@@ -88,6 +88,8 @@ class RealtimeConnection:
         log.info("WebSocket 已连接")
 
     def _handle_message(self, ws, raw):
+        if self._closed:  # 已主动关闭:迟到的事件一律忽略,避免污染新连接状态
+            return
         try:
             msg = parse_event(raw)
         except Exception as e:
@@ -108,9 +110,14 @@ class RealtimeConnection:
             self._on_ui({"type": "conn_error", "error": str(error)})
 
     def _handle_close(self, ws, status_code, msg):
-        if not self._closed:
-            self._on_ui({"type": "conn_closed", "reason": f"{status_code} {msg}".strip()})
-        self._on_closed(f"{status_code} {msg}".strip())
+        reason = f"{status_code} {msg}".strip()
+        if self._closed:
+            # 主动关闭(改设置/切角色/退出):调用方已知晓,不得再上报——
+            # 这条迟到的 closed 事件会把"重连后已就绪的新连接"刷成"已断开"。
+            log.info("连接按请求关闭: %s", reason)
+            return
+        self._on_ui({"type": "conn_closed", "reason": reason})
+        self._on_closed(reason)
 
     def _send(self, msg: dict) -> None:
         data = json.dumps(msg, ensure_ascii=False)

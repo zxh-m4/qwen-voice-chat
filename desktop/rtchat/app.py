@@ -14,13 +14,18 @@ from tkinter import scrolledtext, ttk
 
 
 from . import strings, usage
-from .audio_io import Microphone, Player
+from .audio_io import Microphone, Player, apply_gain
 from .config import (
+    DEFAULT_MIC_GAIN_LEVEL,
+    MIC_GAIN_LEVELS,
     Config,
     load_config,
+    mic_gain_factor,
     migrate_credentials_to_wincred,
+    normalize_mic_gain_level,
     resolve_credentials_input,
     save_credentials,
+    save_mic_gain_level,
     save_ui_language,
 )
 from .connection import RealtimeConnection
@@ -47,7 +52,7 @@ def show_settings_dialog(
     own_root = parent is None
     win = tk.Tk() if own_root else tk.Toplevel(parent)
     win.title(t("settings_title"))
-    win.geometry("500x440")
+    win.geometry("500x440")  # 内容构建完成后按实际需要自适应高度
     if own_root:
         try:
             win.attributes("-topmost", True)
@@ -76,6 +81,21 @@ def show_settings_dialog(
             anchor="w", pady=(2, 0)
         )
 
+    # ── 麦克风灵敏度:整体压低上传音量(端侧增益;配合"靠近麦克风 + 大声说")──
+    ttk.Separator(body).pack(fill="x", pady=(14, 0))
+    ttk.Label(body, text=t("settings_mic_label")).pack(anchor="w", pady=(10, 2))
+    cur_level = (
+        normalize_mic_gain_level(cfg.mic_gain_level) if cfg is not None else DEFAULT_MIC_GAIN_LEVEL
+    )
+    mic_var = tk.IntVar(value=cur_level)
+    for lv in sorted(MIC_GAIN_LEVELS):
+        ttk.Radiobutton(body, text=t(f"settings_mic_{lv}"), value=lv, variable=mic_var).pack(
+            anchor="w", pady=1
+        )
+    ttk.Label(
+        body, text=t("settings_mic_note"), foreground="#888888", wraplength=450, justify="left"
+    ).pack(anchor="w", pady=(6, 0))
+
     msg = ttk.Label(body, text="", foreground="#c62828")
     msg.pack(anchor="w", pady=(6, 0))
 
@@ -85,6 +105,7 @@ def show_settings_dialog(
             msg.config(text=t(f"settings_err_{err}"))
             return
         ok["loc"] = save_credentials(config_path, key, ws)
+        save_mic_gain_level(config_path, mic_var.get())
         ok["v"] = True
         win.destroy()
 
@@ -95,6 +116,11 @@ def show_settings_dialog(
     btns.pack(fill="x", pady=(14, 0))
     ttk.Button(btns, text=t("btn_save"), command=on_save).pack(side="right")
     ttk.Button(btns, text=t("btn_cancel"), command=on_cancel).pack(side="right", padx=(0, 8))
+
+    # 内容增多(凭据 + 麦克风灵敏度七档):按实际所需高度自适应,并限制在屏幕内
+    win.update_idletasks()
+    max_h = int(win.winfo_screenheight() * 0.9)
+    win.geometry(f"500x{min(max(win.winfo_reqheight(), 440), max_h)}")
 
     try:
         win.lift()
@@ -119,6 +145,7 @@ class ChatApp:
         self.ui_q: queue.Queue = queue.Queue()
         self.player = Player(cfg.output_sample_rate)
         self.mic = Microphone(cfg.input_sample_rate, on_pcm=self._on_mic)
+        self.mic_gain = mic_gain_factor(cfg.mic_gain_level)  # 「麦克风灵敏度」端侧增益系数
         self.gate = SilenceGate(
             threshold_rms=cfg.silence_threshold_rms,
             gate_ms=cfg.silence_gate_ms,
@@ -319,6 +346,7 @@ class ChatApp:
         loc = show_settings_dialog(self.root, self.config_path, self.cfg, lang=self.lang)
         if loc:
             self.cfg = load_config(self.config_path)
+            self.mic_gain = mic_gain_factor(self.cfg.mic_gain_level)
             loc_text = self._t("loc_wincred") if loc == "wincred" else self._t("loc_file")
             self._sys(self._t("sys_credentials_updated").format(loc=loc_text))
             self._disconnect()
@@ -346,9 +374,9 @@ class ChatApp:
     # ---------- 麦克风 / 状态回调(非主线程) ----------
 
     def _on_mic(self, pcm: bytes) -> None:
-        if not self.gate.feed(pcm):  # 静音门:停发期省下输入 token
+        if not self.gate.feed(pcm):  # 静音门:按原始音量判定(不受灵敏度影响),停发期省下输入 token
             return
-        self.conn.feed_mic(pcm)
+        self.conn.feed_mic(apply_gain(pcm, self.mic_gain))  # 按灵敏度整体压低后上传
 
     def _on_session_state(self, state: str) -> None:
         if state == "interrupted":

@@ -18,6 +18,43 @@ class ConfigError(Exception):
     """配置缺失或非法。"""
 
 
+# 语音检测方式:固定 server_vad(按音量);None = 禁用 VAD 手动触发(仅 config.json 手改可达)。
+# v1.5 实测结论:服务端 threshold 档位与 semantic_vad 都解决不了"环境人声被当成发言",
+# 两者已全部移除;改为端侧「麦克风灵敏度」整体压低音频(见 MIC_GAIN_LEVELS)。
+def normalize_vad_mode(value: object) -> str | None:
+    if value is None:
+        return None
+    return "server_vad"
+
+
+# 「麦克风灵敏度」:档位 → 上传音频的整体增益(端侧压低;配合"靠近麦克风 + 大声说")。
+# 1 = 0 dB(默认,原样)… 5 = -24 dB;系数 = 10^(-dB/20)。
+MIC_GAIN_LEVELS = {
+    1: 1.0,
+    2: 0.5011872336,  # -6 dB
+    3: 0.2511886432,  # -12 dB
+    4: 0.1258925412,  # -18 dB
+    5: 0.0630957344,  # -24 dB
+    6: 0.0251188643,  # -32 dB
+    7: 0.01,          # -40 dB
+}
+DEFAULT_MIC_GAIN_LEVEL = 1
+
+
+def normalize_mic_gain_level(value: object) -> int:
+    """把任意输入归一化为 1-5 档;非法值回落到默认档(0 dB)。"""
+    try:
+        level = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return DEFAULT_MIC_GAIN_LEVEL
+    return level if level in MIC_GAIN_LEVELS else DEFAULT_MIC_GAIN_LEVEL
+
+
+def mic_gain_factor(level: object) -> float:
+    """麦克风灵敏度档位 → 音频增益系数(1.0 = 原样)。"""
+    return MIC_GAIN_LEVELS[normalize_mic_gain_level(level)]
+
+
 @dataclass
 class Preset:
     """一个角色预设:提示词 + 专属音色 + 联网搜索开关。"""
@@ -40,6 +77,7 @@ class Config:
     )
     vad_type: str | None = "server_vad"
     vad_silence_ms: int = 800
+    mic_gain_level: int = DEFAULT_MIC_GAIN_LEVEL  # 「麦克风灵敏度」档位 1-5(见 MIC_GAIN_LEVELS)
     transcription_model: str | None = "gummy-realtime-v1"
     input_sample_rate: int = 16000
     output_sample_rate: int = 24000
@@ -212,7 +250,7 @@ def load_config(path: str) -> Config:
 
     known = {
         "model", "workspace_id", "voice", "instructions", "vad_type",
-        "vad_silence_ms", "transcription_model", "input_sample_rate",
+        "vad_silence_ms", "mic_gain_level", "transcription_model", "input_sample_rate",
         "output_sample_rate", "frame_ms", "region_host",
         "silence_gate", "silence_gate_ms", "silence_threshold_rms",
         "active_preset", "ui_language",
@@ -245,13 +283,16 @@ def load_config(path: str) -> Config:
         )
     kwargs["active_preset"] = active
     kwargs["ui_language"] = normalize_language(str(kwargs.get("ui_language") or "zh"))
+    kwargs["mic_gain_level"] = normalize_mic_gain_level(
+        kwargs.get("mic_gain_level", DEFAULT_MIC_GAIN_LEVEL)
+    )
+    kwargs["vad_type"] = normalize_vad_mode(kwargs.get("vad_type", "server_vad"))
 
     return Config(api_key=api_key, presets=presets, extra=extra, **kwargs)
 
 
-def save_ui_language(config_path: str, lang: str) -> None:
-    """把界面语言写回 config.json(读-改-写,保留其他字段)。"""
-    lang = normalize_language(lang)
+def _save_field(config_path: str, key: str, value: object) -> None:
+    """把单个字段写回 config.json(读-改-写,保留其他字段)。"""
     try:
         with open(config_path, encoding="utf-8") as f:
             data = json.load(f)
@@ -259,9 +300,19 @@ def save_ui_language(config_path: str, lang: str) -> None:
         data = {}
     if not isinstance(data, dict):
         data = {}
-    data["ui_language"] = lang
+    data[key] = value
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def save_ui_language(config_path: str, lang: str) -> None:
+    """把界面语言写回 config.json。"""
+    _save_field(config_path, "ui_language", normalize_language(lang))
+
+
+def save_mic_gain_level(config_path: str, level: object) -> None:
+    """把「麦克风灵敏度」档位写回 config.json。"""
+    _save_field(config_path, "mic_gain_level", normalize_mic_gain_level(level))
 
 
 def resolve_credentials_input(

@@ -54,6 +54,10 @@ just change one line of configuration.)
 - The run log records event types and diagnostics only — never your conversation content.
 
 [Tips]
+· Typos in the caption do not mean it misunderstood you — the caption comes from a separate
+  "subtitle model" that often mis-spells words with imperfect pronunciation, accents or jargon,
+  while the voice model handling the conversation listens to your raw audio directly and
+  recognizes your speech more accurately than the subtitle model does
 · No sound? Apps like this use the CALL volume, not media volume — press the volume key and
   check the slider label, or raise "Call volume" under Settings → Sound
 · When playing through the speaker at high volume, headphones are recommended to avoid echo

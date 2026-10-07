@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.TextView
@@ -103,7 +104,12 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
         }
         btnToggle.setOnClickListener { toggle() }
-        manager = AoqChatManager(this, { store.credentials }, this)
+        manager = AoqChatManager(
+            this,
+            { store.credentials },
+            { MicGain.factor(store.micGainLevel) },
+            this,
+        )
 
         if (!store.credentials.isComplete) {
             showSettingsDialog(required = true)
@@ -208,6 +214,9 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         if (store.workspaceId.isNotEmpty()) {
             editWs.hint = getString(R.string.hint_ws_saved)
         }
+        // 麦克风灵敏度:七档单选,按已存档位预选
+        val radioMic = view.findViewById<RadioGroup>(R.id.radioMic)
+        radioMic.check(micLevelToButtonId(store.micGainLevel))
 
         val dialog = AlertDialog.Builder(this)
             .setTitle(getString(if (required) R.string.settings_title_first else R.string.settings_title))
@@ -239,11 +248,34 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                     return@setOnClickListener
                 }
                 store.save(key, ws)
+                store.micGainLevel = buttonIdToMicLevel(radioMic.checkedRadioButtonId)
                 dialog.dismiss()
                 startConnection()
             }
         }
         dialog.show()
+    }
+
+    // ---------- 麦克风灵敏度档位 ↔ 按钮 id 映射 ----------
+
+    private fun micLevelToButtonId(level: Int): Int = when (MicGain.normalize(level)) {
+        2 -> R.id.radioMic2
+        3 -> R.id.radioMic3
+        4 -> R.id.radioMic4
+        5 -> R.id.radioMic5
+        6 -> R.id.radioMic6
+        7 -> R.id.radioMic7
+        else -> R.id.radioMic1
+    }
+
+    private fun buttonIdToMicLevel(id: Int): Int = when (id) {
+        R.id.radioMic2 -> 2
+        R.id.radioMic3 -> 3
+        R.id.radioMic4 -> 4
+        R.id.radioMic5 -> 5
+        R.id.radioMic6 -> 6
+        R.id.radioMic7 -> 7
+        else -> MicGain.DEFAULT
     }
 
     // ---------- 使用说明 ----------
