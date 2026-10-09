@@ -16,6 +16,8 @@ Release notes for every version since the first working build (v1.0).
 - Fixed a reconnect race that could show a wrong connection status right after changing settings
 - Help page: clarified that typos in the caption do not affect the conversation (subtitles come from a separate subtitle model)
 - Desktop applies the gain to the captured audio before upload; Android rewrites the uplink frame via the SDK's read-write audio observer
+- *(2026-10-08)* Desktop: window & taskbar icon; layout refresh — 560×560 window, two-row top bar, uniform button widths
+- *(2026-10-09)* Desktop: AI-generated content notice — persistent line above the usage line (follows UI language); help page gains an AI-notice section and a privacy line that transcripts are shown on screen only and nothing is stored
 
 ## v1.4 — 2026-10-06
 - Code cleanup and repo slimming, arm64-only build (APK 14.2 → 9.8 MB)
