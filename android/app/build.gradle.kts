@@ -21,8 +21,10 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.6"
+        // 备案号展示位:管局下号后填入(形如 "粤ICP备2026101234号-1A");空串=帮助页不显示备案信息段
+        buildConfigField("String", "BEIAN_NO", "\"\"")
         ndk {
             abiFilters += listOf("arm64-v8a") // 单架构瘦身:32 位老设备不再支持(约省8MB)
         }

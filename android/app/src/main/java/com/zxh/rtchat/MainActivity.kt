@@ -289,8 +289,23 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         val resId = if (store.appLanguage == LocaleHelper.LANG_ZH) R.raw.help_zh else R.raw.help_en
         val base = resources.openRawResource(resId).bufferedReader().use { it.readText() }
         // 体验版(trial,包内有内置凭据):帮助页最前面加"体验版说明"(分享给朋友的场景)
-        return if (BuildConfig.BUILTIN_KEY_ENC.isNotEmpty()) trialNotice() + "\n\n" + base else base
+        var text = if (BuildConfig.BUILTIN_KEY_ENC.isNotEmpty()) trialNotice() + "\n\n" + base else base
+        // BEIAN_NO 留空(未下号/未填)时帮助页不出现备案信息段,不留空白占位
+        if (BuildConfig.BEIAN_NO.isNotEmpty()) text += "\n\n" + beianSection()
+        return text
     }
+
+    /** 帮助页末尾的备案信息段(仅在 build.gradle.kts 的 BEIAN_NO 填入真实备案号后出现)。 */
+    private fun beianSection(): String =
+        if (store.appLanguage == LocaleHelper.LANG_ZH) {
+            "【备案信息】\n" +
+                "本应用已完成 App 备案,备案号:${BuildConfig.BEIAN_NO}\n" +
+                "(可在工信部备案系统 https://beian.miit.gov.cn 查询)"
+        } else {
+            "[App registration]\n" +
+                "This app has completed App filing (ICP 备案) with the MIIT; registration No. ${BuildConfig.BEIAN_NO}\n" +
+                "(verifiable at https://beian.miit.gov.cn)"
+        }
 
     /** 试用版说明(仅 trial 变体出现;official 版无内置凭据,不显示)。 */
     private fun trialNotice(): String =
