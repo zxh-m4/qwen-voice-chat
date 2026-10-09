@@ -126,6 +126,16 @@
         android:textColor="@color/err_text"
         android:textSize="13sp" />
 
+    <!-- AI 生成内容标识:固定可见,不可关闭(履行深度合成标识义务) -->
+    <TextView
+        android:id="@+id/aiNotice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="14dp"
+        android:text="@string/ai_notice"
+        android:textColor="#78909C"
+        android:textSize="11sp" />
+
     <TextView
         android:id="@+id/usageText"
         android:layout_width="match_parent"
