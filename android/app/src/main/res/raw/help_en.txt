@@ -8,13 +8,12 @@ Thanks to Alibaba Cloud Qwen realtime voice model — it replies almost instantl
 pronunciation problems, and speaks more than thirty languages. This little hobby project became
 a usable speaking partner entirely because of it.
 
-[About this app — please read first]
-This is an open-source client application: it only provides the chat UI and the audio path.
-It does not provide any AI service itself; AI conversations are provided by Alibaba Cloud
-directly to the user, not by the developer. You must register your own Alibaba Cloud Bailian
-account and enter your own API Key; usage charges are borne by you. This app charges no fees,
-bundles no API Key, and runs no relay server. The code is open-sourced under the MIT license;
-feel free to modify and build upon it. The author does not expect to update it frequently;
+[Disclaimer]
+This app is a personal hobby project, unaffiliated with Alibaba Cloud or Qwen official.
+You must register your own Alibaba Cloud Bailian account and enter your own API Key; usage
+charges are borne by you. This app is shared free of charge, for learning and exchange only —
+do not use it for commercial purposes. The code is open-sourced under the MIT license; feel
+free to modify and build upon it. The author does not expect to update it frequently;
 contributions are welcome.
 
 [AI-generated content notice]
