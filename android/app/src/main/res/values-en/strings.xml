@@ -65,6 +65,7 @@
     <string name="mic_7">Maximum — pressed to the minimum (−40 dB)</string>
     <string name="mic_note">Lowers the overall volume sent to the service: surrounding voices are less likely to be taken as you speaking. When lowered, speak closer to the mic and clearly. Takes effect on the next connection.</string>
     <!-- Disclaimer kept only in the help page, not repeated here -->
+    <string name="ai_notice">Conversation text and voice in this app are AI-generated, for study reference only</string>
 
     <!-- 运行时提示 -->
     <string name="err_connect_timeout">Connection timed out (25s): check that your network can reach Alibaba Cloud, then retry</string>

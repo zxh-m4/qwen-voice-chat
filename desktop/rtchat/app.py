@@ -261,6 +261,13 @@ class ChatApp:
             padding=(10, 0, 10, 4), anchor="w", wraplength=420,
         ).pack(fill="x")
 
+        # AI 生成内容标识:固定可见,不可关闭(履行深度合成标识义务)
+        self.ai_notice_var = tk.StringVar(value=self._t("ai_notice"))
+        ttk.Label(
+            self.root, textvariable=self.ai_notice_var, foreground="#999999",
+            font=("", 9), padding=(10, 0, 10, 2), anchor="w",
+        ).pack(fill="x")
+
         self.usage_var = tk.StringVar(value="")
         ttk.Label(
             self.root, textvariable=self.usage_var, foreground="#666666",
@@ -296,6 +303,7 @@ class ChatApp:
         )
         name = self.cfg.active_preset
         self.preset_var.set(labels.get(name, name))
+        self.ai_notice_var.set(self._t("ai_notice"))
         self._refresh_usage(force=True)
 
     # ---------- 连接控制 ----------

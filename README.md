@@ -10,6 +10,21 @@ Dual-platform open-source implementation: **desktop (Python/Tkinter)** + **Andro
 
 ---
 
+## What this is / 这是什么
+
+A **client-side tool** for real-time voice practice, powered by Alibaba Cloud Bailian's
+Qwen Omni Realtime model.
+
+**It is not an AI service.** This project does not distribute AI capability, does not proxy
+requests, and holds no API key. You register your own Alibaba Cloud account, create your own
+API key and enter it into the app — the AI service is provided by Alibaba Cloud
+**directly to you**.
+
+本应用是**客户端工具**，用于通过阿里云百炼的 Qwen Omni Realtime 模型练习实时语音对话。
+**它不是 AI 服务**：本项目不分发 AI 能力、不代理请求、不持有任何 API Key；
+使用者自行注册阿里云账号、申请自己的 API Key 并填入应用——
+AI 服务由**阿里云直接向该使用者本人**提供。
+
 ## 📦 No prebuilt binaries / 不提供预编译包
 
 This is a personal, non-commercial learning project. **No prebuilt APK/EXE packages are
@@ -169,12 +184,30 @@ components that Alibaba's SDK ships with are explicitly stripped from the manife
 
 ---
 
+## What this project does NOT do / 本项目不做什么
+
+The statements below are **verifiable from the source code** — not promises:
+
+| Does NOT / 不做 | How to verify / 验证方式 |
+|---|---|
+| **Provide API keys** / 不提供 API Key | Search the repo for `sk-` — no valid key exists anywhere |
+| **Relay or proxy requests** / 不做请求中转 | All of the app's **service traffic** goes **only to Alibaba Cloud** — **Alibaba Cloud's credential endpoint** on `<workspace>.cn-beijing.maas.aliyuncs.com`, plus the relay nodes **assigned by Alibaba Cloud** in that response. **No developer-operated server exists anywhere in the path.** / 客户端的**所有业务通信**只与**阿里云**进行：**阿里云的凭证接口** + **由阿里云分配的中继节点**；**全程不经开发者的任何服务器** |
+| **Collect user data** / 不收集用户数据 | No analytics, no tracking SDK, no log upload |
+| **Store or upload conversations** / 不保存、不上传对话内容 | Transcripts are **rendered on screen only** — **never written to storage, never uploaded**. Only microphone audio is streamed to Alibaba Cloud for recognition. / 转写**仅渲染在屏幕上**——**从不写入存储、也不上传**；只有麦克风音频会流式传给阿里云做识别 |
+| **Charge any fee** / 不收取费用 | No payment channel, no top-up, no key resale |
+| **Decide the model for you** / 不替你决定模型 | Model name and system prompts are editable example defaults |
+
+This is a **personal, non-commercial hobby project** — the author derives no revenue from it.
+本项目为**个人作品、非经营性**，作者不从中获得任何收益。
+
+---
+
 ## Protocol Notes / 接入说明
 
 | | Desktop | Android |
 |---|---|---|
 | Integration | Qwen **Realtime WebSocket** (direct) | Alibaba **AOQ Client SDK** (WebRTC) |
-| Endpoint | `wss://<workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/realtime` | HTTP token exchange, then SDK connect |
+| Endpoint | `wss://<workspace>.cn-beijing.maas.aliyuncs.com/api-ws/v1/realtime` | Alibaba Cloud's credential endpoint (also returns the assigned relay nodes), then SDK connect |
 | Echo handling | local silence gate (+ optional echo guard) | relies on SDK/system AEC |
 | Deep-dive notes | `docs/千问实时语音接入实录.md` (Chinese) | same |
 

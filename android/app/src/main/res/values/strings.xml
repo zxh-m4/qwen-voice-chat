@@ -65,6 +65,7 @@
     <string name="mic_7">极限 —— 压到最低,要贴麦说(−40 dB)</string>
     <string name="mic_note">整体压低上传音量:周围的声音更不容易被当成你在说话;调低后请靠近麦克风、说得清楚一些。更改在下次连接后生效。</string>
     <!-- 声明只在「使用说明」页保留一处,设置里不再重复 -->
+    <string name="ai_notice">本应用对话内容与语音均由 AI 生成,仅供学习参考</string>
 
     <!-- 运行时提示 -->
     <string name="err_connect_timeout">连接超时(25秒未就绪):请确认手机网络可访问阿里云,或稍后重试</string>

@@ -25,6 +25,7 @@ class TestKeyParity:
             "sys_preset_switched", "sys_credentials_updated", "sys_conn_closed",
             "sys_session_ended", "err_connect_failed", "err_conn_error",
             "err_audio_open", "prefix_user", "prefix_ai", "state_starting",
+            "ai_notice",
         }
         for lang in ("zh", "en"):
             missing = required - set(strings.UI[lang].keys())
@@ -48,9 +49,10 @@ class TestKeyParity:
 
 
 class TestHelpSections:
-    ZH_MARKERS = ["—— 笑晗", "【关于语音模型】", "【声明】", "【快速开始】",
+    ZH_MARKERS = ["—— 笑晗", "【关于语音模型】", "【声明】", "【AI 生成内容标识】", "【快速开始】",
                   "【费用说明】", "【八种语言】", "【隐私说明】", "【小提示】"]
-    EN_MARKERS = ["— Xiaohan", "[About the voice model]", "[Disclaimer]", "[Quick start]",
+    EN_MARKERS = ["— Xiaohan", "[About the voice model]", "[Disclaimer]",
+                  "[AI-generated content notice]", "[Quick start]",
                   "[Cost]", "[Eight languages]", "[Privacy]", "[Tips]"]
 
     def test_zh_sections(self):
