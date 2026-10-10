@@ -437,18 +437,33 @@ class ChatApp:
 
     # ---------- 费用显示 ----------
 
+    def _silence_saved_text(self) -> str:
+        """静音门本次会话拦掉的时长文案;无节省时返回空串(不显示该项)。
+
+        语义:它说明"这段时间服务端没收到你的声音",**不代表省下的钱** ——
+        界面费用按连接时长估算(见 usage.py),不随它减少。
+        """
+        saved = usage.saved_secs_from_frames(
+            self.gate.stats["frames_in"], self.gate.stats["frames_sent"], self.cfg.frame_ms
+        )
+        if saved < 1.0:          # 不足 1 秒不值得占位
+            return ""
+        return self._t("usage_saved").format(secs=int(saved))
+
     def _refresh_usage(self, force: bool = False) -> None:
         now = time.time()
         if not force and now - self._last_usage_ts < self.USAGE_REFRESH_S:
             return
         self._last_usage_ts = now
-        self.usage_var.set(
-            self._t("usage_format").format(
-                s=self.meter.session_cost(now),
-                t=self.meter.total_cost(now),
-                mss=usage.format_mss(self.meter.session_secs(now)),
-            )
+        text = self._t("usage_format").format(
+            s=self.meter.session_cost(now),
+            t=self.meter.total_cost(now),
+            mss=usage.format_mss(self.meter.session_secs(now)),
         )
+        saved_text = self._silence_saved_text()
+        if saved_text:
+            text = f"{text} · {saved_text}"
+        self.usage_var.set(text)
 
     # ---------- UI 事件循环(主线程) ----------
 

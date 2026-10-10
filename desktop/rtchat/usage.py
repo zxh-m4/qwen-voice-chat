@@ -31,6 +31,18 @@ def format_mss(secs: int) -> str:
     return f"{secs // 60}:{secs % 60:02d}"
 
 
+def saved_secs_from_frames(frames_in: int, frames_sent: int, frame_ms: int) -> float:
+    """静音门拦掉的音频时长(秒) = (收帧 - 发帧) × 帧长。
+
+    语义提醒:这只是"服务端没收到你的声音"的时长,**不等于省下的钱** ——
+    界面上的费用按连接时长估算(见本模块顶部注释),不随这个数字减少。
+    """
+    dropped = frames_in - frames_sent
+    if dropped <= 0:
+        return 0.0
+    return dropped * frame_ms / 1000.0
+
+
 class UsageMeter:
     """「本次」= 当前会话;「累计」= 进程级(退出清零,断开/换老师不清零)。
 

@@ -43,6 +43,9 @@ HELP_ZH = """本应用是为了创造一个外语学习的语境环境,是本人
 · 连着不说话也约 0.15 元/小时(静音门开启后会明显低于此值)
 · 双方不停说的理论上限约 0.69 元/小时
 估算只按声音/文字量与公开费率折算,最终以你的控制台账单为准
+费用行末尾的「静音省 Ns」表示静音门拦掉、没有上传给服务器的音频时长(不足 1 秒不显示)。
+它说明"这段时间服务端没收到你的声音",但**不代表上面的费用会相应减少**——
+估算按连接时长折算,不随这个数字变化。真正省下的是服务端的输入 token。
 
 【八种语言】
 下拉切换,切换即开始新对话;每位老师锁定自己的语言——无论你说什么语言,老师都用该语言回复,仅明确说「用中文解释/翻译」才切中文;中文老师反之,用英文解释。
@@ -94,6 +97,9 @@ Each conversation is billed to your Bailian account; closing the window stops bi
 · Staying connected without speaking: about ¥0.15 / hour (noticeably lower with the silence gate on)
 · Theoretical ceiling if both sides never stop: about ¥0.69 / hour
 The estimate is derived from audio/text volume and public rates; your console bill is authoritative
+The "muted Ns" suffix on the bottom bar is how much audio the silence gate held back and never uploaded (hidden under 1 second).
+It tells you the server did not hear you for that long, but it does NOT reduce the cost shown above —
+the estimate is based on connection time and does not follow this number. What is actually saved is input tokens on the server side.
 
 [Eight languages]
 Switch from the dropdown; switching starts a new conversation. Each tutor locks to its own language — whatever language you speak, the tutor replies in that language, and switches to Chinese only when you explicitly say "explain in Chinese" or "translate". The Chinese tutor is the reverse: it explains in English.
@@ -127,6 +133,9 @@ UI: dict[str, dict] = {
         "btn_help": "?",
         "lang_button": "EN",
         "usage_format": "本次 ¥{s:.3f} · 累计 ¥{t:.3f} · {mss}",
+        # 静音门拦掉的音频时长;只是"服务端没收到你的声音"的时长,
+        # 不代表省下的钱(费用按连接时长估算,不因此减少)。
+        "usage_saved": "静音省 {secs}s",
         "state_starting": "启动中…",
         "states": {
             "connecting": "连接中…",
@@ -197,6 +206,7 @@ UI: dict[str, dict] = {
         "btn_help": "?",
         "lang_button": "中文",
         "usage_format": "This ¥{s:.3f} · Total ¥{t:.3f} · {mss}",
+        "usage_saved": "muted {secs}s",
         "state_starting": "Starting…",
         "states": {
             "connecting": "Connecting…",

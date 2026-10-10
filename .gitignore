@@ -2,6 +2,10 @@
 *.log
 *.zip
 *.spec
+# 例外:桌面版打包配置是构建必需文件,必须入库。
+# 不入库的话,换机器/新克隆后 PyInstaller 没有 icon= 可读,
+# 打出的 exe 会退回 Windows 记事本默认图标(2026-10-10 实际发生过)。
+!desktop/实时外语对话.spec
 .DS_Store
 *.bak
 *.tmp
