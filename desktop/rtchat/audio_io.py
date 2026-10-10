@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from array import array
 
 from .frames import PlaybackQueue
 
@@ -14,13 +15,17 @@ def apply_gain(pcm: bytes, factor: float) -> bytes:
     """整体缩放 PCM16 单声道音频(「麦克风灵敏度」:压低上传音量)。
 
     factor >= 1.0(0 dB)时原样返回,零开销;否则按系数缩放并防溢出。
+    纯 Python 实现(array 模块);与旧 numpy(float32)版最多差 1 LSB(-32769 侧取 -32768)。
     """
     if factor >= 1.0:
         return pcm
-    import numpy as np
-
-    arr = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) * factor
-    return np.clip(arr, -32768, 32767).astype(np.int16).tobytes()
+    n = len(pcm) - len(pcm) % 2
+    if n <= 0:
+        return b""
+    a = array("h")
+    a.frombytes(pcm[:n])
+    out = array("h", [min(32767, max(-32768, int(v * factor))) for v in a])
+    return out.tobytes()
 
 
 class Microphone:
@@ -48,7 +53,7 @@ class Microphone:
         with self._lock:
             if self._stream is not None:
                 return
-            self._stream = sd.InputStream(
+            self._stream = sd.RawInputStream(
                 samplerate=self._sample_rate,
                 channels=1,
                 dtype="int16",
@@ -83,8 +88,7 @@ class Player:
         self._lock = threading.Lock()
 
     def _callback(self, outdata, frames, time_info, status):
-        import numpy as np
-
+        # Raw 流的 outdata 是 cffi buffer(支持切片赋值),不引入 numpy
         self.stats["callbacks"] += 1
         need = frames * 2  # int16 单声道
         with self._pending_lock:
@@ -99,11 +103,10 @@ class Player:
             data = bytes(self._pending[:need])
             usable = len(data) - len(data) % 2  # 奇数字节尾巴留在 pending,下次拼
             del self._pending[:usable]
-        flat = outdata.reshape(-1)  # (frames, channels) -> 一维视图,写入即写回 outdata
         if len(data) < need:
-            flat.fill(0)
-        arr = np.frombuffer(data[:usable], dtype=np.int16)
-        flat[: len(arr)] = arr
+            outdata[:] = b"\x00" * need  # underrun:整个缓冲补静音
+        if usable:
+            outdata[:usable] = data[:usable]
 
     def start(self) -> None:
         import sounddevice as sd
@@ -111,7 +114,7 @@ class Player:
         with self._lock:
             if self._stream is not None:
                 return
-            self._stream = sd.OutputStream(
+            self._stream = sd.RawOutputStream(
                 samplerate=self._sample_rate,
                 channels=1,
                 dtype="int16",

@@ -7,7 +7,8 @@ VAD 的断句计时拿到连续时间轴),连续静音超时才停发;一旦检�
 """
 from __future__ import annotations
 
-import numpy as np
+import math
+from array import array
 
 
 class SilenceGate:
@@ -22,13 +23,20 @@ class SilenceGate:
 
     @staticmethod
     def rms(data: bytes) -> int:
-        """16bit 单声道 PCM 的 RMS 幅度(audioop 已于 Python 3.13 移除,用 numpy 实现)。"""
+        """16bit 单声道 PCM 的 RMS 幅度(audioop 已于 Python 3.13 移除,纯 Python 实现)。
+
+        整数精确求和后开方:数值与旧 numpy(float64)版完全一致。
+        """
         if not data:
             return 0
-        a = np.frombuffer(data, dtype=np.int16).astype(np.float64)
-        if a.size == 0:
+        n = len(data) - len(data) % 2
+        if n <= 0:
             return 0
-        return int(np.sqrt(np.mean(a * a)))
+        a = array("h")
+        a.frombytes(data[:n])
+        if len(a) == 0:
+            return 0
+        return int(math.sqrt(sum(v * v for v in a) / len(a)))
 
     def feed(self, frame: bytes) -> bool:
         """喂一帧麦克风数据,返回这帧是否应该发送。"""

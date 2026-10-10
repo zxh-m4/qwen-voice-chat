@@ -202,39 +202,65 @@ class ChatApp:
         self.meter.add_downlink(len(pcm), self.cfg.output_sample_rate)
         self.player.write(pcm)
 
+    # ---------- 窗口图标 ----------
+
+    def _set_window_icon(self) -> None:
+        """给窗口标题栏与任务栏设置图标;主题缺 iconphoto 时静默忽略。"""
+        import os
+        from .paths import app_dir
+        ico = os.path.join(app_dir(), "app.ico")
+        try:
+            if os.path.exists(ico):
+                if os.name == "nt":
+                    self.root.iconbitmap(ico)
+                else:
+                    img = tk.PhotoImage(file=ico)
+                    self.root.iconphoto(True, img)
+                    self._icon_ref = img  # 防被 GC
+        except Exception:
+            log.debug("设置窗口图标失败(忽略)", exc_info=True)
+
     # ---------- UI 搭建 ----------
 
     def _build_ui(self) -> None:
         self.root = tk.Tk()
         self.root.title(self._t("app_title"))
-        self.root.geometry("460x580")
-        self.root.minsize(360, 420)
+        self._set_window_icon()
+        self.root.geometry("560x560")
+        self.root.minsize(420, 420)
 
-        top = ttk.Frame(self.root, padding=(10, 8))
+        # 顶栏拆两行:第一行 状态 + 控制按钮,第二行 角色选择。
+        # 按钮统一宽度(round-btn),避免旧版 3/5/6/自适应 混杂导致的参差。
+        top = ttk.Frame(self.root, padding=(12, 10))
         top.pack(fill="x")
+
+        row_ctrl = ttk.Frame(top)
+        row_ctrl.pack(fill="x")
         self.state_var = tk.StringVar(value=self._t("state_starting"))
-        dot = ttk.Label(top, text="●", foreground="gray")
+        dot = ttk.Label(row_ctrl, text="●", foreground="gray")
         dot.pack(side="left")
-        ttk.Label(top, textvariable=self.state_var, font=("", 11, "bold")).pack(
+        ttk.Label(row_ctrl, textvariable=self.state_var, font=("", 11, "bold")).pack(
             side="left", padx=(6, 0)
         )
-        self.btn = ttk.Button(top, text=self._t("btn_disconnect"), command=self._toggle_conn)
+
+        # 右侧按钮从右往左排列,宽度统一。断开按钮最宽以突出主操作。
+        self.btn = ttk.Button(row_ctrl, text=self._t("btn_disconnect"), width=8, command=self._toggle_conn)
         self.btn.pack(side="right")
-        self.help_btn = ttk.Button(top, text=self._t("btn_help"), width=3, command=self._show_help)
-        self.help_btn.pack(side="right", padx=(0, 4))
+        self.help_btn = ttk.Button(row_ctrl, text=self._t("btn_help"), width=8, command=self._show_help)
+        self.help_btn.pack(side="right", padx=(0, 6))
         if self.config_path:
             self.settings_btn = ttk.Button(
-                top, text=self._t("btn_settings"), width=6, command=self._open_settings
+                row_ctrl, text=self._t("btn_settings"), width=8, command=self._open_settings
             )
-            self.settings_btn.pack(side="right", padx=(0, 4))
+            self.settings_btn.pack(side="right", padx=(0, 6))
         self.lang_btn = ttk.Button(
-            top, text=self._t("lang_button"), width=5, command=self._toggle_language
+            row_ctrl, text=self._t("lang_button"), width=8, command=self._toggle_language
         )
-        self.lang_btn.pack(side="right", padx=(0, 4))
+        self.lang_btn.pack(side="right", padx=(0, 6))
 
-        row2 = ttk.Frame(top)
-        row2.pack(fill="x", pady=(6, 0))
-        self.role_lbl = ttk.Label(row2, text=self._t("lbl_role"))
+        row_role = ttk.Frame(top)
+        row_role.pack(fill="x", pady=(10, 0))
+        self.role_lbl = ttk.Label(row_role, text=self._t("lbl_role"))
         self.role_lbl.pack(side="left")
         labels = strings.UI[self.lang]["presets"]
         self.preset_var = tk.StringVar(
@@ -242,15 +268,16 @@ class ChatApp:
         )
         values = [labels.get(k, k) for k in self.cfg.presets] or [self.preset_var.get()]
         self.preset_combo = ttk.Combobox(
-            row2, textvariable=self.preset_var, values=values, state="readonly", width=18
+            row_role, textvariable=self.preset_var, values=values, state="readonly", width=22
         )
-        self.preset_combo.pack(side="left", padx=(4, 0))
+        # 宽度固定为 22 字符,右侧留出与"断开"按钮对齐的余量,不拉满整行
+        self.preset_combo.pack(side="left", padx=(6, 0))
         self.preset_combo.bind("<<ComboboxSelected>>", self._on_preset_change)
 
         self.transcript = scrolledtext.ScrolledText(
-            self.root, wrap="word", state="disabled", font=("", 11), padx=10, pady=8
+            self.root, wrap="word", state="disabled", font=("", 11), padx=12, pady=10
         )
-        self.transcript.pack(fill="both", expand=True, padx=10, pady=(0, 6))
+        self.transcript.pack(fill="both", expand=True, padx=12, pady=(0, 8))
         self.transcript.tag_configure("user", foreground="#1a6fb5", spacing3=6)
         self.transcript.tag_configure("ai", foreground="#1f7a3d", spacing3=6)
         self.transcript.tag_configure("sys", foreground="#888888", font=("", 9))
@@ -258,20 +285,22 @@ class ChatApp:
         self.err_var = tk.StringVar(value="")
         ttk.Label(
             self.root, textvariable=self.err_var, foreground="#c62828",
-            padding=(10, 0, 10, 4), anchor="w", wraplength=420,
+            padding=(12, 0, 12, 4), anchor="w", wraplength=520,
         ).pack(fill="x")
+
+        ttk.Separator(self.root).pack(fill="x", padx=12)
 
         # AI 生成内容标识:固定可见,不可关闭(履行深度合成标识义务)
         self.ai_notice_var = tk.StringVar(value=self._t("ai_notice"))
         ttk.Label(
             self.root, textvariable=self.ai_notice_var, foreground="#999999",
-            font=("", 9), padding=(10, 0, 10, 2), anchor="w",
+            font=("", 9), padding=(12, 0, 12, 2), anchor="w",
         ).pack(fill="x")
 
         self.usage_var = tk.StringVar(value="")
         ttk.Label(
             self.root, textvariable=self.usage_var, foreground="#666666",
-            padding=(10, 0, 10, 8), anchor="w",
+            padding=(12, 8, 12, 10), anchor="w",
         ).pack(fill="x")
 
     # ---------- 界面语言 ----------
