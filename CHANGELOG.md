@@ -18,6 +18,8 @@ Release notes for every version since the first working build (v1.0).
 - Desktop applies the gain to the captured audio before upload; Android rewrites the uplink frame via the SDK's read-write audio observer
 - *(2026-10-08)* Desktop: window & taskbar icon; layout refresh — 560×560 window, two-row top bar, uniform button widths
 - *(2026-10-09)* Desktop: AI-generated content notice — persistent line above the usage line (follows UI language); help page gains an AI-notice section and a privacy line that transcripts are shown on screen only and nothing is stored
+- *(2026-10-10)* Desktop: **numpy removed from the runtime** — mic capture and playback now use PortAudio raw streams (`RawInputStream` / `RawOutputStream`, cffi buffers) and gain/RMS are done with the stdlib `array`/`math`; the packaged size drops from 26.2 MB to 11.1 MB (extra `--exclude-module numpy`, plus five unused non-Windows PortAudio binaries dropped from the bundle)
+- *(2026-10-10)* Desktop: packaging fixed — `实时外语对话.spec` with `icon='app.ico'` (the exe used to ship with the Windows default notepad icon) and `config.example.json` bundled so first launch no longer warns about a missing config; usage line gains a `静音省 Ns` / `muted Ns` counter (audio time blocked by the silence gate — **not** a cost reduction, billing still follows connection time)
 
 ## v1.4 — 2026-10-06
 - Code cleanup and repo slimming, arm64-only build (APK 14.2 → 9.8 MB)
