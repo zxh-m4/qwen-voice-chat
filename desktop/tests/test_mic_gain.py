@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """v1.5「麦克风灵敏度」:档位 → 端侧增益系数;上传前整体压低音频(PCM 采样缩放)。"""
 import json
+import math
+from array import array
 
-import numpy as np
 import pytest
 
 from rtchat.audio_io import apply_gain
@@ -60,15 +61,20 @@ class TestApplyGain:
         assert apply_gain(pcm, 1.0) is pcm  # 原样返回,零开销
 
     def test_halved_samples(self):
-        pcm = np.array([1000, -2000, 32767, -32768], dtype=np.int16).tobytes()
-        out = np.frombuffer(apply_gain(pcm, 0.5), dtype=np.int16)
+        pcm = array("h", [1000, -2000, 32767, -32768]).tobytes()
+        out = array("h")
+        out.frombytes(apply_gain(pcm, 0.5))
         assert list(out) == [500, -1000, 16383, -16384]
 
     def test_energy_drops_proportionally(self):
-        pcm = np.array([8000, -8000] * 50, dtype=np.int16).tobytes()
-        before = np.frombuffer(pcm, dtype=np.int16).astype(np.float64)
-        after = np.frombuffer(apply_gain(pcm, 0.25), dtype=np.int16).astype(np.float64)
-        assert np.sqrt((before**2).mean()) / max(1e-9, np.sqrt((after**2).mean())) == pytest.approx(
+        pcm = array("h", [8000, -8000] * 50).tobytes()
+
+        def rms(data: bytes) -> float:
+            a = array("h")
+            a.frombytes(data)
+            return math.sqrt(sum(v * v for v in a) / len(a))
+
+        assert rms(pcm) / max(1e-9, rms(apply_gain(pcm, 0.25))) == pytest.approx(
             4.0, rel=1e-3
         )
 
