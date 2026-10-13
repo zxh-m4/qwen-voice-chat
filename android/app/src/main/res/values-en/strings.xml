@@ -83,4 +83,12 @@
     <string name="err_network">Cannot reach Alibaba Cloud. Please check your network.</string>
     <string name="err_generic">Something went wrong. Details are in the log file.</string>
 
+    <!-- About page: stores require the ICP filing number under Settings → About, copyable by long-press and tappable through to the MIIT lookup -->
+    <string name="about_entry">About</string>
+    <string name="about_oss_notice">Open-source notices</string>
+    <string name="about_privacy_policy">Privacy policy</string>
+    <string name="about_beian_hint">(long-press to copy · tap to open the MIIT lookup)</string>
+    <string name="about_beian_copied">Filing number copied</string>
+    <string name="about_no_browser">No browser available to open the page</string>
+
 </resources>

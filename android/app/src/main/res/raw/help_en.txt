@@ -12,8 +12,7 @@ a usable speaking partner entirely because of it.
 This app is a personal hobby project, unaffiliated with Alibaba Cloud or Qwen official.
 You must register your own Alibaba Cloud Bailian account and enter your own API Key; usage
 charges are borne by you. This app is shared free of charge, for learning and exchange only —
-do not use it for commercial purposes. The code is open-sourced under the MIT license; feel
-free to modify and build upon it. The author does not expect to update it frequently;
+do not use it for commercial purposes. The author does not expect to update it frequently;
 contributions are welcome.
 
 [AI-generated content notice]
@@ -51,12 +50,6 @@ is the reverse: it explains in English.
 · Spanish tutor Sonrisa · French tutor Emilien · Korean tutor Sohee · German tutor Ingrid
 (Not a fan of a voice? The official Bailian voice list has samples to audition —
 just change one line of configuration.)
-
-[Privacy]
-- Your voice is streamed to Alibaba Cloud Bailian for recognition and synthesis.
-- Transcripts are shown on screen only; this app stores no conversation content.
-- Your API Key / Workspace ID stay on this device (encrypted) and are never sent anywhere else.
-- The run log records event types and diagnostics only — never your conversation content.
 
 [Tips]
 · Typos in the caption do not mean it misunderstood you — the caption comes from a separate

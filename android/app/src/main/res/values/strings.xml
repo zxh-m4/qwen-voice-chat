@@ -83,4 +83,12 @@
     <string name="err_network">无法连接阿里云,请检查网络</string>
     <string name="err_generic">出错了,详情见日志文件</string>
 
+    <!-- 「关于」页:应用商店要求备案号出现在「设置→关于」,且可长按复制、可点击跳转工信部查询 -->
+    <string name="about_entry">关于</string>
+    <string name="about_oss_notice">开源软件声明</string>
+    <string name="about_privacy_policy">隐私政策</string>
+    <string name="about_beian_hint">(长按可复制 · 点击查看工信部查询)</string>
+    <string name="about_beian_copied">备案号已复制</string>
+    <string name="about_no_browser">未找到可打开网页的浏览器</string>
+
 </resources>

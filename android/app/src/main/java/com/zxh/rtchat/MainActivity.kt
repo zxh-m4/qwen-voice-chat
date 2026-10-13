@@ -1,9 +1,14 @@
 package com.zxh.rtchat
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -218,6 +223,9 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         val radioMic = view.findViewById<RadioGroup>(R.id.radioMic)
         radioMic.check(micLevelToButtonId(store.micGainLevel))
 
+        // 「关于」入口:商店要求备案号等出现在「设置→关于」里
+        view.findViewById<TextView>(R.id.aboutEntry).setOnClickListener { showAboutDialog() }
+
         val dialog = AlertDialog.Builder(this)
             .setTitle(getString(if (required) R.string.settings_title_first else R.string.settings_title))
             .setView(view)
@@ -289,23 +297,8 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         val resId = if (store.appLanguage == LocaleHelper.LANG_ZH) R.raw.help_zh else R.raw.help_en
         val base = resources.openRawResource(resId).bufferedReader().use { it.readText() }
         // 体验版(trial,包内有内置凭据):帮助页最前面加"体验版说明"(分享给朋友的场景)
-        var text = if (BuildConfig.BUILTIN_KEY_ENC.isNotEmpty()) trialNotice() + "\n\n" + base else base
-        // BEIAN_NO 留空(未下号/未填)时帮助页不出现备案信息段,不留空白占位
-        if (BuildConfig.BEIAN_NO.isNotEmpty()) text += "\n\n" + beianSection()
-        return text
+        return if (BuildConfig.BUILTIN_KEY_ENC.isNotEmpty()) trialNotice() + "\n\n" + base else base
     }
-
-    /** 帮助页末尾的备案信息段(仅在 build.gradle.kts 的 BEIAN_NO 填入真实备案号后出现)。 */
-    private fun beianSection(): String =
-        if (store.appLanguage == LocaleHelper.LANG_ZH) {
-            "【备案信息】\n" +
-                "本应用已完成 App 备案,备案号:${BuildConfig.BEIAN_NO}\n" +
-                "(可在工信部备案系统 https://beian.miit.gov.cn 查询)"
-        } else {
-            "[App registration]\n" +
-                "This app has completed App filing (ICP 备案) with the MIIT; registration No. ${BuildConfig.BEIAN_NO}\n" +
-                "(verifiable at https://beian.miit.gov.cn)"
-        }
 
     /** 试用版说明(仅 trial 变体出现;official 版无内置凭据,不显示)。 */
     private fun trialNotice(): String =
@@ -339,6 +332,97 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             .setView(sv)
             .setPositiveButton(getString(R.string.btn_ok), null)
             .show()
+    }
+
+    // ---------- 关于 ----------
+
+    /**
+     * 「关于」页。应用商店要求备案号出现在「设置→关于」,并且可长按复制、可点击跳到工信部查询;
+     * 文案本身在 AboutText(纯逻辑,有单测锁住与帮助页逐字一致)。
+     */
+    private fun showAboutDialog() {
+        val zh = store.appLanguage == LocaleHelper.LANG_ZH
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(16), dp(20), dp(16))
+        }
+
+        fun add(text: String, size: Float, color: Int, topDp: Int = 5, bold: Boolean = false): TextView =
+            TextView(this).apply {
+                this.text = text
+                textSize = size
+                setTextColor(color)
+                if (bold) setTypeface(typeface, Typeface.BOLD)
+                gravity = Gravity.CENTER
+                setPadding(0, dp(topDp), 0, dp(5))
+                box.addView(this)
+            }
+
+        add(getString(R.string.app_name), 18f, 0xFF263238.toInt(), bold = true)
+        add(AboutText.versionLine(zh, BuildConfig.VERSION_NAME), 13f, 0xFF90A4AE.toInt())
+
+        add(getString(R.string.about_oss_notice), 14f, 0xFF2C6EB5.toInt(), topDp = 18)
+            .setOnClickListener {
+                showPlainDialog(
+                    getString(R.string.about_oss_notice),
+                    AboutText.ossNotice(zh),
+                )
+            }
+        add(getString(R.string.about_privacy_policy), 14f, 0xFF2C6EB5.toInt(), topDp = 6)
+            .setOnClickListener {
+                showPlainDialog(
+                    getString(R.string.about_privacy_policy),
+                    AboutText.privacyNotice(zh),
+                )
+            }
+
+        // BEIAN_NO 未填时整行连同提示一起不出现,不留空白占位
+        val beian = AboutText.beianLine(zh, BuildConfig.BEIAN_NO)
+        if (beian.isNotEmpty()) {
+            add(beian, 14f, 0xFF607D8B.toInt(), topDp = 18).apply {
+                setOnLongClickListener { copyBeianNumber(); true }
+                setOnClickListener { openBeianSite() }
+            }
+            add(getString(R.string.about_beian_hint), 11f, 0xFFB0BEC5.toInt())
+        }
+
+        add(AboutText.copyrightLine(zh), 12f, 0xFF90A4AE.toInt(), topDp = 18)
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.about_entry))
+            .setView(ScrollView(this).apply { addView(box) })
+            .setPositiveButton(getString(R.string.btn_ok), null)
+            .show()
+    }
+
+    /** 开源声明 / 隐私政策这类长文本子页,排版沿用帮助页。 */
+    private fun showPlainDialog(title: String, body: String) {
+        val tv = TextView(this).apply {
+            text = body
+            setTextColor(0xFF37474F.toInt())
+            textSize = 14f
+            setLineSpacing(4f, 1f)
+            setPadding(dp(20), dp(12), dp(20), dp(12))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(ScrollView(this).apply { addView(tv) })
+            .setPositiveButton(getString(R.string.btn_ok), null)
+            .show()
+    }
+
+    private fun copyBeianNumber() {
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("beian", BuildConfig.BEIAN_NO))
+        Toast.makeText(this, getString(R.string.about_beian_copied), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openBeianSite() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AboutText.BEIAN_URL)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private var pendingAutoConnect = false

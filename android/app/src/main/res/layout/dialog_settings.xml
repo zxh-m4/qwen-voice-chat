@@ -131,5 +131,23 @@
             android:textSize="12sp"
             android:textColor="#888888" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="#E0E0E0" />
+
+        <!-- 应用商店合规要求备案号等出现在「设置→关于」,故在此留入口。 -->
+        <TextView
+            android:id="@+id/aboutEntry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="6dp"
+            android:text="@string/about_entry"
+            android:textColor="#2C6EB5"
+            android:textSize="14sp" />
+
     </LinearLayout>
 </ScrollView>
