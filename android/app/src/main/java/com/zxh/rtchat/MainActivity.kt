@@ -71,13 +71,15 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         }
     }
     private var currentAiBubble: TextView? = null
-    private var lastPresetKey: String = SessionPresets.default().key
+    /** 当前已生效的角色 key(与下拉同步;自定义语言也走这里)。 */
+    private var appliedPresetKey: String = SessionPresets.default().key
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppLog.init(applicationContext)
         setContentView(R.layout.activity_main)
         store = SettingsStore(this)
+        appliedPresetKey = effectivePresetKey()   // 角色选择存在 store 里,必须等 store 就绪后再算
         stateDot = findViewById(R.id.stateDot)
         stateText = findViewById(R.id.stateText)
         bubbleContainer = findViewById(R.id.bubbleContainer)
@@ -94,16 +96,15 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
 
         spinner.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
-            SessionPresets.ALL.map { presetLabel(it) },
+            presetLabels(),
         )
+        // 恢复上次选中的角色(自定义语言靠它跨启动保留)。程序化设置位置同样会触发一次
+        // onItemSelected,由下面「key == appliedPresetKey 就忽略」挡掉,不算用户操作。
+        spinner.setSelection(presetPositionOf(appliedPresetKey), false)
         spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
-                if (!running) return
-                val preset = SessionPresets.ALL.getOrElse(pos) { SessionPresets.default() }
-                if (preset.key == lastPresetKey) return
-                lastPresetKey = preset.key
-                sysLine(getString(R.string.sys_switch_preset, presetLabel(preset)))
-                manager.switchPreset(preset)
+                if (presetKeyAt(pos) == appliedPresetKey) return   // 启动恢复 / 重复选中同一项
+                selectPresetAt(pos)
             }
 
             override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
@@ -167,6 +168,90 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
 
     // ---------- 界面语言 ----------
 
+    /** 角色下拉的条目:八个内置老师 + 末尾的「自定义语言…」。 */
+    private fun presetLabels(): List<String> =
+        SessionPresets.ALL.map { presetLabel(it) } + getString(R.string.preset_custom)
+
+    /** 下拉位置 → 角色 key;最后一项是自定义语言。 */
+    private fun presetKeyAt(pos: Int): String =
+        if (pos in SessionPresets.ALL.indices) SessionPresets.ALL[pos].key else SessionPresets.CUSTOM_KEY
+
+    /** 角色 key → 下拉位置(未知 key 一律落到「自定义语言」那一项)。 */
+    private fun presetPositionOf(key: String): Int =
+        SessionPresets.ALL.indexOfFirst { it.key == key }.let { if (it >= 0) it else SessionPresets.ALL.size }
+
+    /**
+     * 当前应当生效的角色 key。选了「自定义语言」却没填语言名时回落到默认老师,
+     * 并顺手改掉这个悬空选择,避免"选着自定义、用着英语老师"的不一致。
+     */
+    private fun effectivePresetKey(): String {
+        val saved = store.presetKey.ifEmpty { SessionPresets.default().key }
+        if (saved == SessionPresets.CUSTOM_KEY && store.customLanguage.isBlank()) {
+            store.presetKey = SessionPresets.default().key
+            return SessionPresets.default().key
+        }
+        return saved
+    }
+
+    /** 用户在角色下拉里选了第 pos 项。自定义语言要先拿到语言名,再真正切换。 */
+    private fun selectPresetAt(pos: Int) {
+        val key = presetKeyAt(pos)
+        if (key == SessionPresets.CUSTOM_KEY && store.customLanguage.isBlank()) {
+            askCustomLanguage()   // 第一次选自定义:先问语言名;取消则把下拉拨回原处
+            return
+        }
+        applyPresetKey(key)
+    }
+
+    /** 真正切换角色:记住选择;连接中热切换,未连接只记着(点连接时按它启动)。 */
+    private fun applyPresetKey(key: String) {
+        appliedPresetKey = key
+        store.presetKey = key
+        if (!running) return
+        val preset = SessionPresets.resolve(key, store.customLanguage)
+        sysLine(getString(R.string.sys_switch_preset, presetLabel(preset)))
+        manager.switchPreset(preset)
+    }
+
+    /** 把下拉拨回当前生效的角色(取消自定义语言输入时用;那次回调会因 key 相同被忽略)。 */
+    private fun restoreSpinner() {
+        spinner.setSelection(presetPositionOf(appliedPresetKey), false)
+    }
+
+    /**
+     * 询问「练哪种语言」。只在选了「自定义语言」而还没填过名字时弹出;
+     * 之后想改语言名走右上角设置里的同名字段。
+     * 不允许点外部/返回键取消:否则下拉会停在「自定义语言」却没有语言名的半选状态。
+     */
+    private fun askCustomLanguage() {
+        val input = EditText(this).apply {
+            hint = getString(R.string.dlg_custom_lang_hint)
+            setText(store.customLanguage)
+            setSingleLine()
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dlg_custom_lang_title))
+            .setMessage(getString(R.string.dlg_custom_lang_msg))
+            .setView(input)
+            .setPositiveButton(getString(R.string.btn_ok), null)
+            .setNegativeButton(getString(R.string.btn_cancel)) { _, _ -> restoreSpinner() }
+            .setCancelable(false)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val name = SessionPresets.normalizeLanguage(input.text.toString())
+                if (name.isEmpty()) {
+                    Toast.makeText(this, getString(R.string.toast_need_custom_lang), Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                store.customLanguage = name
+                dialog.dismiss()
+                applyPresetKey(SessionPresets.CUSTOM_KEY)
+            }
+        }
+        dialog.show()
+    }
+
     /** 角色名按当前界面语言取(给用户看的下拉列表);日志仍用 SessionPresets 里的原始 label。 */
     private fun presetLabel(p: SessionPresets.Preset): String = when (p.key) {
         "english_teacher" -> getString(R.string.preset_english)
@@ -177,6 +262,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         "french_teacher" -> getString(R.string.preset_french)
         "korean_teacher" -> getString(R.string.preset_korean)
         "german_teacher" -> getString(R.string.preset_german)
+        SessionPresets.CUSTOM_KEY -> getString(R.string.preset_custom_label, store.customLanguage)
         else -> p.label // 新增预设忘了配字符串时的兜底
     }
 
@@ -219,6 +305,9 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         if (store.workspaceId.isNotEmpty()) {
             editWs.hint = getString(R.string.hint_ws_saved)
         }
+        // 自定义语言名:预填当前值,留空表示不修改(与上面两个凭据框同一约定)
+        val editCustomLang = view.findViewById<EditText>(R.id.editCustomLang)
+        editCustomLang.setText(store.customLanguage)
         // 麦克风灵敏度:七档单选,按已存档位预选
         val radioMic = view.findViewById<RadioGroup>(R.id.radioMic)
         radioMic.check(micLevelToButtonId(store.micGainLevel))
@@ -255,6 +344,9 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                     Toast.makeText(this, getString(R.string.toast_need_ws), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+                // 自定义语言名:留空=沿用已存值
+                val customLang = SessionPresets.normalizeLanguage(editCustomLang.text.toString())
+                if (customLang.isNotEmpty()) store.customLanguage = customLang
                 store.save(key, ws)
                 store.micGainLevel = buttonIdToMicLevel(radioMic.checkedRadioButtonId)
                 dialog.dismiss()
@@ -450,7 +542,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         }
         if (running) manager.stop() // 通话中改凭据重连:先断旧会话
         errText.text = ""
-        manager.start(SessionPresets.byKey(presetKeyAt(spinner.selectedItemPosition)))
+        manager.start(SessionPresets.resolve(appliedPresetKey, store.customLanguage))
         running = true
         btnToggle.text = getString(R.string.btn_disconnect)
         usageHandler.removeCallbacks(usageTick) // 无论从哪条路径进来都恰好一个费用刷新器
@@ -478,9 +570,6 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             startConnection()
         }
     }
-
-    private fun presetKeyAt(pos: Int): String =
-        SessionPresets.ALL.getOrElse(pos) { SessionPresets.default() }.key
 
     /** 25 秒仍未就绪:提示用户,便于反馈(接口正常时通常 2~5 秒内就绪)。 */
     private fun scheduleConnectTimeout() {

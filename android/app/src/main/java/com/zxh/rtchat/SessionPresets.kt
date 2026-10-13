@@ -87,6 +87,44 @@ object SessionPresets {
         ),
     )
 
+    /** 「自定义语言」在角色下拉里的 key(第九项,语言名由用户输入)。 */
+    const val CUSTOM_KEY = "custom_teacher"
+
+    /** 语言名长度上限:只是不让提示词被塞进超长文本(「巴西葡萄牙语」这类也够写)。 */
+    const val CUSTOM_LANGUAGE_MAX = 30
+
+    /** 自定义语言的音色:语种未知,用通用音色(与英语/中文老师一致)。 */
+    private const val CUSTOM_VOICE = "Tina"
+
+    /**
+     * 按用户输入的语言名构造一个「语言老师」预设,结构与八个内置预设完全一致。
+     *
+     * 语言名中英文都收(「意大利语」/「Italian」皆可),**不做语种白名单** ——
+     * 模型本身就认识语种名,白名单只会挡住用户。锁语规则与其余外语老师一致:
+     * 只用该语言回答,仅明确说「用中文解释/翻译」才切中文。
+     */
+    fun custom(language: String): Preset {
+        val lang = normalizeLanguage(language)
+        val lock = lockRule(lang, "「用中文解释」或「翻译成中文」")
+        return Preset(
+            CUSTOM_KEY, lang + "老师",
+            lock + teacherBody(lang, "当用户某个" + lang + "发音或语调明显不标准时,温和地指出问题、示范正确的说法,并给一个简短的例句;"),
+            voice = CUSTOM_VOICE,
+            enableSearch = false,
+        )
+    }
+
+    /** 语言名清洗:去首尾空白、内部空白折叠成一个空格、截断到 [CUSTOM_LANGUAGE_MAX]。空串=用户没填。 */
+    fun normalizeLanguage(raw: String): String =
+        raw.trim().replace(Regex("\\s+"), " ").take(CUSTOM_LANGUAGE_MAX)
+
+    /**
+     * 角色 key → 预设。自定义语言要额外带上用户填的语言名;
+     * 名字为空(没填过)时回落到默认预设,不拿空串去构造提示词。
+     */
+    fun resolve(key: String, customLanguage: String): Preset =
+        if (key == CUSTOM_KEY && customLanguage.isNotBlank()) custom(customLanguage) else byKey(key)
+
     const val MODEL = "qwen3.8-omni-flash-realtime"
 
     fun default(): Preset = ALL[0]

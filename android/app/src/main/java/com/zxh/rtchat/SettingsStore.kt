@@ -36,6 +36,19 @@ class SettingsStore(context: Context) {
         get() = MicGain.normalize(prefs.getInt("mic_gain_level", MicGain.DEFAULT))
         set(value) = prefs.edit().putInt("mic_gain_level", MicGain.normalize(value)).apply()
 
+    /** 「自定义语言」的名称(角色选「自定义语言」时生效)。只是语言名,明文即可。 */
+    var customLanguage: String
+        get() = prefs.getString("custom_language", "") ?: ""
+        set(value) = prefs.edit().putString("custom_language", SessionPresets.normalizeLanguage(value)).apply()
+
+    /**
+     * 上次选中的角色 key。自定义语言必须靠它才能在重启后继续生效
+     * (否则每次启动都回到英语老师,用户填过的语言名就白填了)。
+     */
+    var presetKey: String
+        get() = prefs.getString("preset_key", "") ?: ""
+        set(value) = prefs.edit().putString("preset_key", value).apply()
+
     val credentials: Credentials
         get() {
             val k = apiKey

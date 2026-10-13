@@ -6,12 +6,13 @@
     android:background="#F2F5F9"
     android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        app:cardCornerRadius="14dp"
-        app:cardElevation="2dp">
+        android:background="@drawable/bg_bubble_ai"
+        android:elevation="2dp"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,7 +41,7 @@
             <!-- 语言切换:与帮助/设置同级放在顶栏,默认显示 EN/中,点击即弹选择框 -->
             <Button
                 android:id="@+id/btnLang"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="0dp"
@@ -66,7 +67,7 @@
                 android:contentDescription="@string/settings_title"
                 android:src="@android:drawable/ic_menu_preferences" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -93,7 +94,8 @@
 
         <Button
             android:id="@+id/btnToggle"
-            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            style="@style/Widget.AppCompat.Button.Colored"
+            app:backgroundTint="#2C6EB5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="0dp"

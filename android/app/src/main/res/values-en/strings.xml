@@ -29,6 +29,14 @@
     <string name="preset_korean">Korean tutor</string>
     <string name="preset_german">German tutor</string>
 
+    <!-- Custom language (9th tutor, language name typed by the user) -->
+    <string name="preset_custom">Custom language…</string>
+    <string name="preset_custom_label">%1$s tutor</string>
+    <string name="dlg_custom_lang_title">Custom language</string>
+    <string name="dlg_custom_lang_msg">Enter the language you want to practise (any language name works), e.g. Italian / Thai / 意大利语</string>
+    <string name="dlg_custom_lang_hint">e.g. Italian</string>
+    <string name="dlg_custom_lang_note">Used when the tutor is set to “Custom language”; leave blank to keep the current value. Pace and corrections match the eight built-in tutors; the voice is fixed.</string>
+    <string name="toast_need_custom_lang">Please enter a language name</string>
     <!-- 语言切换 -->
     <string name="lang_title">Language</string>
     <string name="lang_btn_en">EN</string>

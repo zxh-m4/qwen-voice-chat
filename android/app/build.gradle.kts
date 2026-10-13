@@ -21,8 +21,8 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.6"
+        versionCode = 8
+        versionName = "1.7"
         // 备案号展示位:2026-10-13 管局下号后填入;空串=帮助页不显示备案信息段
         buildConfigField("String", "BEIAN_NO", "\"粤ICP备2026154313号-1A\"")
         ndk {
@@ -63,7 +63,14 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8:开混淆 + 资源压缩。体积大头是 AOQ SDK 的 Java 层与 AndroidX 未用资源。
+            // AOQ SDK 自带 proguard.txt(在 AAR 内),AGP 会自动合并,故自定义规则只作兜底。
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             signingConfig = if (keystorePropsFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
@@ -95,6 +102,5 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
     testImplementation("junit:junit:4.13.2")
 }

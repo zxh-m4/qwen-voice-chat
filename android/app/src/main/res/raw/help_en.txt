@@ -50,6 +50,9 @@ is the reverse: it explains in English.
 · Spanish tutor Sonrisa · French tutor Emilien · Korean tutor Sohee · German tutor Ingrid
 (Not a fan of a voice? The official Bailian voice list has samples to audition —
 just change one line of configuration.)
+· Want another language? Pick "Custom language…" at the end of the dropdown and type a
+  language name (e.g. Italian, Thai). Same rules as the eight tutors, just locked to your
+  language; the voice is fixed to Tina.
 
 [Tips]
 · Typos in the caption do not mean it misunderstood you — the caption comes from a separate
