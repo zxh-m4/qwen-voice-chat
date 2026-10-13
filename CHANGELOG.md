@@ -11,8 +11,8 @@ Release notes for every version since the first working build (v1.0).
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
 ## v1.6 — 2026-10-13
-- **App filing compliance / App 备案合规** — the ICP filing number is now shown inside the app through the `BEIAN_NO` build slot (filled in this release). The disclaimer wording is kept **verbatim** identical to the screenshots submitted with the public-security registration (公安备案), so it must not be reworded.
-  （备案号经 `BEIAN_NO` 构建槽位显示在应用内；声明文案与公安备案提交的真机截图逐字一致，请勿改写。）
+- **App filing compliance / App 备案合规** — the ICP filing number is shown under **Settings → About**: long-press to copy, tap to open the MIIT lookup site (`beian.miit.gov.cn`). That page also carries the app name, version, open-source notices, privacy policy and copyright — and the help page no longer repeats the privacy, filing or open-source sections. The disclaimer wording stays **verbatim** identical to the screenshots submitted with the public-security registration (公安备案).
+  （备案号在「设置 → 关于」：长按复制、点击跳转工信部备案查询系统；同页列应用名、版本、开源软件声明、隐私政策与版权；帮助页不再重复隐私/备案/开源声明。）
 - **AI-generated content notice** — new in v1.6; **v1.5 shipped without any AI label** (`ai_notice` does not exist in the v1.5 tag). Both platforms now show a persistent, non-dismissible line, every assistant caption carries an `AI:` prefix, and the help page has a dedicated section — in Chinese and English.
 - Desktop: window & taskbar icon; layout refresh — 560×560 window, two-row top bar, uniform button widths
 - Desktop: persistent AI-notice line above the usage line (follows UI language); help page gains an AI-notice section and a privacy line stating that transcripts are shown on screen only and nothing is stored
