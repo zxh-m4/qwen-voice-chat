@@ -23,8 +23,8 @@ android {
         targetSdk = 35
         versionCode = 7
         versionName = "1.6"
-        // 备案号展示位:管局下号后填入(形如 "粤ICP备2026101234号-1A");空串=帮助页不显示备案信息段
-        buildConfigField("String", "BEIAN_NO", "\"\"")
+        // 备案号展示位:2026-10-13 管局下号后填入;空串=帮助页不显示备案信息段
+        buildConfigField("String", "BEIAN_NO", "\"粤ICP备2026154313号-1A\"")
         ndk {
             abiFilters += listOf("arm64-v8a") // 单架构瘦身:32 位老设备不再支持(约省8MB)
         }

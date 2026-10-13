@@ -10,16 +10,23 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
+## v1.6 — 2026-10-13
+- **App filing compliance / App 备案合规** — the ICP filing number is now shown inside the app through the `BEIAN_NO` build slot (filled in this release). The disclaimer wording is kept **verbatim** identical to the screenshots submitted with the public-security registration (公安备案), so it must not be reworded.
+  （备案号经 `BEIAN_NO` 构建槽位显示在应用内；声明文案与公安备案提交的真机截图逐字一致，请勿改写。）
+- **AI-generated content notice** — new in v1.6; **v1.5 shipped without any AI label** (`ai_notice` does not exist in the v1.5 tag). Both platforms now show a persistent, non-dismissible line, every assistant caption carries an `AI:` prefix, and the help page has a dedicated section — in Chinese and English.
+- Desktop: window & taskbar icon; layout refresh — 560×560 window, two-row top bar, uniform button widths
+- Desktop: persistent AI-notice line above the usage line (follows UI language); help page gains an AI-notice section and a privacy line stating that transcripts are shown on screen only and nothing is stored
+- Desktop: **numpy removed from the runtime** — mic capture and playback now use PortAudio raw streams (`RawInputStream` / `RawOutputStream`, cffi buffers) and gain/RMS are done with the stdlib `array`/`math`; the packaged size drops from 26.2 MB to 11.1 MB (extra `--exclude-module numpy`, plus five unused non-Windows PortAudio binaries dropped from the bundle)
+- Desktop: packaging fixed — `实时外语对话.spec` with `icon='app.ico'` (the exe used to ship with the Windows default notepad icon) and `config.example.json` bundled so first launch no longer warns about a missing config; usage line gains a `静音省 Ns` / `muted Ns` counter (audio time blocked by the silence gate — **not** a cost reduction, billing still follows connection time)
+- Desktop tests: 143 → **175**, all green in an environment **without** numpy
+- Android: `versionCode 7` / `versionName 1.6`; no binary is distributed (build from source)
+
 ## v1.5 — 2026-10-07
 - **Mic sensitivity** — seven levels (0 / −6 / −12 / −18 / −24 / −32 / −40 dB) that lower the uploaded audio volume, so surrounding voices are less likely to be taken as you speaking (speak closer / louder to compensate)
 - Removed two settings that real-device testing proved ineffective: server-side VAD threshold levels, and `semantic_vad`
 - Fixed a reconnect race that could show a wrong connection status right after changing settings
 - Help page: clarified that typos in the caption do not affect the conversation (subtitles come from a separate subtitle model)
 - Desktop applies the gain to the captured audio before upload; Android rewrites the uplink frame via the SDK's read-write audio observer
-- *(2026-10-08)* Desktop: window & taskbar icon; layout refresh — 560×560 window, two-row top bar, uniform button widths
-- *(2026-10-09)* Desktop: AI-generated content notice — persistent line above the usage line (follows UI language); help page gains an AI-notice section and a privacy line that transcripts are shown on screen only and nothing is stored
-- *(2026-10-10)* Desktop: **numpy removed from the runtime** — mic capture and playback now use PortAudio raw streams (`RawInputStream` / `RawOutputStream`, cffi buffers) and gain/RMS are done with the stdlib `array`/`math`; the packaged size drops from 26.2 MB to 11.1 MB (extra `--exclude-module numpy`, plus five unused non-Windows PortAudio binaries dropped from the bundle)
-- *(2026-10-10)* Desktop: packaging fixed — `实时外语对话.spec` with `icon='app.ico'` (the exe used to ship with the Windows default notepad icon) and `config.example.json` bundled so first launch no longer warns about a missing config; usage line gains a `静音省 Ns` / `muted Ns` counter (audio time blocked by the silence gate — **not** a cost reduction, billing still follows connection time)
 
 ## v1.4 — 2026-10-06
 - Code cleanup and repo slimming, arm64-only build (APK 14.2 → 9.8 MB)
