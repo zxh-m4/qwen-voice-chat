@@ -10,7 +10,7 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
-## v1.7 — 2026-10-13
+## v1.7 — 2026-10-18
 - **APK slimming / 安卓瘦身** — R8 (minify + shrink resources) plus dropping the Material Components dependency cuts the APK from 9.93 MB to 5.92 MB (−40%). The three `.so` files are untouched and now make up roughly 80% of the package — that is the floor for further Android slimming. The theme moves to AppCompat equivalents.
   （开启 R8 混淆与资源压缩、去掉 Material 依赖：APK 9.93 → 5.92 MB。三个 `.so` 未动，现占包体约八成，是安卓端继续瘦身的天花板；主题改用 AppCompat 等价写法。）
 - **Custom language tutor / 自定义语言** — a ninth entry in the role dropdown. The model already knows language names, so no whitelist is imposed: whatever the user types becomes the locked language under the same rules as the eight built-in teachers; the voice is fixed to Tina.
