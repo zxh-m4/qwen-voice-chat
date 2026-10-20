@@ -10,6 +10,15 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
+## v1.8 — 2026-10-20
+- **Custom language as a dropdown / 自定义语言改为下拉** — the ninth role now offers nine common languages (Italian, Portuguese, Arabic, Thai, Vietnamese, Indonesian, Turkish, Dutch, Polish) with "Other (type manually)" at the end, in both the role list and Settings.
+  （角色下拉第九项改为常用语种列表，末尾「其他(手动输入)」；主界面与设置两个入口都改，旧版手输且不在列表的语种会自动补进下拉。）
+- **Restatement mode / 外语转述模式** — switch "Mode" to Restatement and the tutor only restates what you say in fluent target-language; it never answers, asks or teaches. The target language follows the role dropdown, and switching modes carries the language over.
+- **Language coverage in the help page / 帮助页语种声明** — 8 built-in tutors + 9 dropdown choices = 17, while the model officially supports 36 languages/dialects for generation; links to the official voice list and realtime docs.
+- **Copyable subtitles fixed / 字幕长按复制修复** — bubbles are selectable now (the AI line once streaming finishes, so an in-flight selection is not clobbered); the help-page wording matches the behaviour.
+- About page: the filing number is shown as the number plus a `›` chevron; the "long-press to copy" hint line was removed.
+- Android: `versionCode 9` / `versionName 1.8`; no binary is distributed (build from source)
+
 ## v1.7 — 2026-10-18
 - **APK slimming / 安卓瘦身** — R8 (minify + shrink resources) plus dropping the Material Components dependency cuts the APK from 9.93 MB to 5.92 MB (−40%). The three `.so` files are untouched and now make up roughly 80% of the package — that is the floor for further Android slimming. The theme moves to AppCompat equivalents.
   （开启 R8 混淆与资源压缩、去掉 Material 依赖：APK 9.93 → 5.92 MB。三个 `.so` 未动，现占包体约八成，是安卓端继续瘦身的天花板；主题改用 AppCompat 等价写法。）
