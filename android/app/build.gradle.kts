@@ -21,8 +21,8 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 10
+        versionName = "1.8.1"
         // 备案号展示位:2026-10-13 管局下号后填入;空串=帮助页不显示备案信息段
         buildConfigField("String", "BEIAN_NO", "\"粤ICP备2026154313号-1A\"")
         ndk {
@@ -47,6 +47,15 @@ android {
             // 确需"内置凭据的试用版"时,请自行评估风险并使用 SecretVault 加密后填入。
             buildConfigField("String", "BUILTIN_KEY_ENC", "\"\"")
             buildConfigField("String", "BUILTIN_WS_ENC", "\"\"")
+        }
+        create("legacy") {
+            dimension = "edition"
+            versionName = "1.8.1-legacy"
+            buildConfigField("String", "BUILTIN_KEY_ENC", "\"\"")
+            buildConfigField("String", "BUILTIN_WS_ENC", "\"\"")
+            ndk {
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+            }
         }
     }
 

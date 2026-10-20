@@ -36,6 +36,20 @@ class SettingsStore(context: Context) {
         get() = MicGain.normalize(prefs.getInt("mic_gain_level", MicGain.DEFAULT))
         set(value) = prefs.edit().putInt("mic_gain_level", MicGain.normalize(value)).apply()
 
+    /**
+     * 使用模式([SessionPresets.MODE_TEACHER] / [SessionPresets.MODE_RESTATE])。
+     * 修改后要重建界面(角色下拉的内容随模式变),见 MainActivity 设置保存处。
+     */
+    var mode: String
+        get() = prefs.getString("mode", SessionPresets.MODE_TEACHER)
+            ?.takeIf { it == SessionPresets.MODE_RESTATE } ?: SessionPresets.MODE_TEACHER
+        set(value) {
+            prefs.edit().putString(
+                "mode",
+                if (value == SessionPresets.MODE_RESTATE) SessionPresets.MODE_RESTATE else SessionPresets.MODE_TEACHER,
+            ).apply()
+        }
+
     /** 「自定义语言」的名称(角色选「自定义语言」时生效)。只是语言名,明文即可。 */
     var customLanguage: String
         get() = prefs.getString("custom_language", "") ?: ""
@@ -85,8 +99,8 @@ class SettingsStore(context: Context) {
         prefs.edit().putString(key, SecureStore.encrypt(value.trim())).apply()
     }
 
-    private companion object {
-        const val KEY_API = "api_key"
-        const val KEY_WS = "workspace_id"
+    companion object {
+        private const val KEY_API = "api_key"
+        private const val KEY_WS = "workspace_id"
     }
 }

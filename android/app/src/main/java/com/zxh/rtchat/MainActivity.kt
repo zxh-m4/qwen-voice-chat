@@ -168,36 +168,50 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
 
     // ---------- 界面语言 ----------
 
-    /** 角色下拉的条目:八个内置老师 + 末尾的「自定义语言…」。 */
+    /** 角色下拉的条目:按当前使用模式取档位(老师:八位老师+自定义 / 转述:八种转述+自定义)。 */
     private fun presetLabels(): List<String> =
-        SessionPresets.ALL.map { presetLabel(it) } + getString(R.string.preset_custom)
+        SessionPresets.keysFor(store.mode).map { roleLabel(it) }
 
-    /** 下拉位置 → 角色 key;最后一项是自定义语言。 */
-    private fun presetKeyAt(pos: Int): String =
-        if (pos in SessionPresets.ALL.indices) SessionPresets.ALL[pos].key else SessionPresets.CUSTOM_KEY
+    /** 下拉位置 → 角色 key;末位固定是「自定义语言」。 */
+    private fun presetKeyAt(pos: Int): String {
+        val keys = SessionPresets.keysFor(store.mode)
+        return keys.getOrElse(pos) { keys.last() }
+    }
 
     /** 角色 key → 下拉位置(未知 key 一律落到「自定义语言」那一项)。 */
-    private fun presetPositionOf(key: String): Int =
-        SessionPresets.ALL.indexOfFirst { it.key == key }.let { if (it >= 0) it else SessionPresets.ALL.size }
+    private fun presetPositionOf(key: String): Int {
+        val keys = SessionPresets.keysFor(store.mode)
+        val i = keys.indexOf(key)
+        return if (i >= 0) i else keys.size - 1
+    }
 
     /**
-     * 当前应当生效的角色 key。选了「自定义语言」却没填语言名时回落到默认老师,
-     * 并顺手改掉这个悬空选择,避免"选着自定义、用着英语老师"的不一致。
+     * 当前应当生效的角色 key。换过模式后旧 key 可能不属于当前模式,先用 keyInMode 折回同语种;
+     * 选了「自定义语言」却没填语言名时回落到该模式默认档,避免"选着自定义、用着默认档"的不一致。
      */
     private fun effectivePresetKey(): String {
-        val saved = store.presetKey.ifEmpty { SessionPresets.default().key }
-        if (saved == SessionPresets.CUSTOM_KEY && store.customLanguage.isBlank()) {
-            store.presetKey = SessionPresets.default().key
-            return SessionPresets.default().key
+        val mode = store.mode
+        val defaultKey = SessionPresets.keysFor(mode).first()
+        val saved = SessionPresets.keyInMode(store.presetKey.ifEmpty { defaultKey }, mode)
+        if (saved == SessionPresets.customKeyFor(mode) && store.customLanguage.isBlank()) {
+            store.presetKey = defaultKey
+            return defaultKey
         }
         return saved
     }
 
-    /** 用户在角色下拉里选了第 pos 项。自定义语言要先拿到语言名,再真正切换。 */
+    /** 用户在角色下拉里选了第 pos 项。自定义语言第一次要用下拉选语种,再真正切换。 */
     private fun selectPresetAt(pos: Int) {
         val key = presetKeyAt(pos)
-        if (key == SessionPresets.CUSTOM_KEY && store.customLanguage.isBlank()) {
-            askCustomLanguage()   // 第一次选自定义:先问语言名;取消则把下拉拨回原处
+        val customKey = SessionPresets.customKeyFor(store.mode)
+        if (key == customKey && store.customLanguage.isBlank()) {
+            showCustomLanguageChooser(
+                onPicked = { name ->
+                    store.customLanguage = name
+                    applyPresetKey(customKey)
+                },
+                onCancel = { restoreSpinner() },
+            )
             return
         }
         applyPresetKey(key)
@@ -213,20 +227,51 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         manager.switchPreset(preset)
     }
 
-    /** 把下拉拨回当前生效的角色(取消自定义语言输入时用;那次回调会因 key 相同被忽略)。 */
+    /** 把下拉拨回当前生效的角色(取消自定义语言选择时用;那次回调会因 key 相同被忽略)。 */
     private fun restoreSpinner() {
         spinner.setSelection(presetPositionOf(appliedPresetKey), false)
     }
 
     /**
-     * 询问「练哪种语言」。只在选了「自定义语言」而还没填过名字时弹出;
-     * 之后想改语言名走右上角设置里的同名字段。
-     * 不允许点外部/返回键取消:否则下拉会停在「自定义语言」却没有语言名的半选状态。
+     * 「自定义语言」下拉里可选的常用语种:**只列八位内置老师没覆盖的语种**。
+     * (英语/日语/俄语/中文/西语/法语/韩语/德语已有专属档位,再列一遍只会让人以为要重复选。)
+     * 按界面语言显示;存下来的就是显示名,模型中英文都认。
      */
-    private fun askCustomLanguage() {
+    private fun customLangNames(): List<String> = listOf(
+        R.string.langname_italian, R.string.langname_portuguese, R.string.langname_arabic,
+        R.string.langname_thai, R.string.langname_vietnamese, R.string.langname_indonesian,
+        R.string.langname_turkish, R.string.langname_dutch, R.string.langname_polish,
+    ).map { getString(it) }
+
+    /**
+     * 选「自定义语言」的语种:弹一个列表供选(常用语种 + 末尾「其他(手动输入)…」),
+     * 替代原先一上来就弹输入框的方式。选「其他」再走手动输入。
+     */
+    private fun showCustomLanguageChooser(onPicked: (String) -> Unit, onCancel: () -> Unit) {
+        val names = customLangNames()
+        val items = (names + getString(R.string.dlg_custom_lang_other)).toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dlg_custom_lang_title))
+            .setSingleChoiceItems(items, names.indexOf(store.customLanguage)) { dialog, which ->
+                dialog.dismiss()
+                if (which == names.size) {
+                    askCustomLanguageInput(store.customLanguage, onPicked, onCancel)
+                } else {
+                    onPicked(names[which])
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_cancel)) { _, _ -> onCancel() }
+            .show()
+    }
+
+    /**
+     * 手动输入语言名(「其他(手动输入)…」那一项)。
+     * 不允许点外部/返回键取消:不填不给过,避免停在「自定义语言」却没有语言名的半选状态。
+     */
+    private fun askCustomLanguageInput(initial: String, onPicked: (String) -> Unit, onCancel: () -> Unit) {
         val input = EditText(this).apply {
             hint = getString(R.string.dlg_custom_lang_hint)
-            setText(store.customLanguage)
+            setText(initial)
             setSingleLine()
         }
         val dialog = AlertDialog.Builder(this)
@@ -234,7 +279,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             .setMessage(getString(R.string.dlg_custom_lang_msg))
             .setView(input)
             .setPositiveButton(getString(R.string.btn_ok), null)
-            .setNegativeButton(getString(R.string.btn_cancel)) { _, _ -> restoreSpinner() }
+            .setNegativeButton(getString(R.string.btn_cancel)) { _, _ -> onCancel() }
             .setCancelable(false)
             .create()
         dialog.setOnShowListener {
@@ -244,16 +289,25 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                     Toast.makeText(this, getString(R.string.toast_need_custom_lang), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                store.customLanguage = name
                 dialog.dismiss()
-                applyPresetKey(SessionPresets.CUSTOM_KEY)
+                onPicked(name)
             }
         }
         dialog.show()
     }
 
-    /** 角色名按当前界面语言取(给用户看的下拉列表);日志仍用 SessionPresets 里的原始 label。 */
+    /**
+     * 角色名按当前界面语言取(用于下拉列表与切换提示);日志仍用 SessionPresets 里的原始 label。
+     * 自定义档位带上用户选的语言名(「意大利语老师」/「意大利语转述」)。
+     */
     private fun presetLabel(p: SessionPresets.Preset): String = when (p.key) {
+        SessionPresets.CUSTOM_KEY -> getString(R.string.preset_custom_label, store.customLanguage)
+        SessionPresets.CUSTOM_RESTATE_KEY -> getString(R.string.preset_restate_label, store.customLanguage)
+        else -> roleLabel(p.key)
+    }
+
+    /** 档位 key → 下拉里显示的名字。 */
+    private fun roleLabel(key: String): String = when (key) {
         "english_teacher" -> getString(R.string.preset_english)
         "japanese_teacher" -> getString(R.string.preset_japanese)
         "russian_teacher" -> getString(R.string.preset_russian)
@@ -262,9 +316,21 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         "french_teacher" -> getString(R.string.preset_french)
         "korean_teacher" -> getString(R.string.preset_korean)
         "german_teacher" -> getString(R.string.preset_german)
-        SessionPresets.CUSTOM_KEY -> getString(R.string.preset_custom_label, store.customLanguage)
-        else -> p.label // 新增预设忘了配字符串时的兜底
+        SessionPresets.CUSTOM_KEY, SessionPresets.CUSTOM_RESTATE_KEY -> getString(R.string.preset_custom)
+        "restate_english" -> restateLabel(R.string.langname_english)
+        "restate_japanese" -> restateLabel(R.string.langname_japanese)
+        "restate_russian" -> restateLabel(R.string.langname_russian)
+        "restate_chinese" -> restateLabel(R.string.langname_chinese)
+        "restate_spanish" -> restateLabel(R.string.langname_spanish)
+        "restate_french" -> restateLabel(R.string.langname_french)
+        "restate_korean" -> restateLabel(R.string.langname_korean)
+        "restate_german" -> restateLabel(R.string.langname_german)
+        else -> key // 新增预设忘了配字符串时的兜底
     }
+
+    /** 「英语转述」这类标签(语言名按界面语言取)。 */
+    private fun restateLabel(langNameRes: Int): String =
+        getString(R.string.preset_restate_label, getString(langNameRes))
 
     private fun langName(lang: String): String =
         getString(if (lang == LocaleHelper.LANG_ZH) R.string.lang_name_zh else R.string.lang_name_en)
@@ -305,9 +371,43 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         if (store.workspaceId.isNotEmpty()) {
             editWs.hint = getString(R.string.hint_ws_saved)
         }
-        // 自定义语言名:预填当前值,留空表示不修改(与上面两个凭据框同一约定)
-        val editCustomLang = view.findViewById<EditText>(R.id.editCustomLang)
-        editCustomLang.setText(store.customLanguage)
+        // 使用模式:语言老师 / 外语转述(改了要换档并重建界面,见保存处)
+        val radioMode = view.findViewById<RadioGroup>(R.id.radioMode)
+        radioMode.check(
+            if (store.mode == SessionPresets.MODE_RESTATE) R.id.radioModeRestate else R.id.radioModeTeacher,
+        )
+        // 自定义语言:下拉选择(常用语种 + 末尾「其他(手动输入)…」)
+        val customNames = customLangNames()
+        var customLang = SessionPresets.normalizeLanguage(store.customLanguage)
+        val customItems = customNames.toMutableList().apply {
+            // 之前手动输入过、又不在常用列表里的语种,补一项进去,免得下拉里看不到
+            if (customLang.isNotEmpty() && customLang !in customNames) add(customLang)
+            add(getString(R.string.dlg_custom_lang_other))
+        }
+        val customOtherPos = customItems.size - 1
+        val spinnerCustom = view.findViewById<Spinner>(R.id.spinnerCustomLang)
+        spinnerCustom.adapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_dropdown_item, customItems,
+        )
+        spinnerCustom.setSelection(customItems.indexOf(customLang).let { if (it >= 0) it else 0 }, false)
+        // 程序化设置位置同样会回调一次 onItemSelected;只有用户真的碰过下拉才算操作
+        var customSpinnerTouched = false
+        spinnerCustom.setOnTouchListener { _, _ ->
+            customSpinnerTouched = true
+            false
+        }
+        spinnerCustom.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                if (!customSpinnerTouched) return
+                if (pos == customOtherPos) {
+                    askCustomLanguageInput(customLang, { picked -> customLang = picked }, {})
+                } else {
+                    customLang = customItems[pos]
+                }
+            }
+
+            override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
+        }
         // 麦克风灵敏度:七档单选,按已存档位预选
         val radioMic = view.findViewById<RadioGroup>(R.id.radioMic)
         radioMic.check(micLevelToButtonId(store.micGainLevel))
@@ -344,13 +444,23 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                     Toast.makeText(this, getString(R.string.toast_need_ws), Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                // 自定义语言名:留空=沿用已存值
-                val customLang = SessionPresets.normalizeLanguage(editCustomLang.text.toString())
+                // 自定义语言:下拉里选中的语种(没动过就沿用已存值)
                 if (customLang.isNotEmpty()) store.customLanguage = customLang
+                // 使用模式:变了就换成新模式的同语种档位,并重建界面(角色下拉的内容随模式变,切换即重新开始)
+                val newMode = if (radioMode.checkedRadioButtonId == R.id.radioModeRestate) {
+                    SessionPresets.MODE_RESTATE
+                } else {
+                    SessionPresets.MODE_TEACHER
+                }
+                val modeChanged = newMode != store.mode
+                if (modeChanged) {
+                    store.mode = newMode
+                    store.presetKey = SessionPresets.keyInMode(store.presetKey, newMode)
+                }
                 store.save(key, ws)
                 store.micGainLevel = buttonIdToMicLevel(radioMic.checkedRadioButtonId)
                 dialog.dismiss()
-                startConnection()
+                if (modeChanged) recreate() else startConnection()
             }
         }
         dialog.show()
@@ -468,14 +578,13 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                 )
             }
 
-        // BEIAN_NO 未填时整行连同提示一起不出现,不留空白占位
-        val beian = AboutText.beianLine(zh, BuildConfig.BEIAN_NO)
+        // BEIAN_NO 未填时整行不出现,不留空白占位
+        val beian = AboutText.beianLine(BuildConfig.BEIAN_NO)
         if (beian.isNotEmpty()) {
             add(beian, 14f, 0xFF607D8B.toInt(), topDp = 18).apply {
                 setOnLongClickListener { copyBeianNumber(); true }
                 setOnClickListener { openBeianSite() }
             }
-            add(getString(R.string.about_beian_hint), 11f, 0xFFB0BEC5.toInt())
         }
 
         add(AboutText.copyrightLine(zh), 12f, 0xFF90A4AE.toInt(), topDp = 18)
@@ -676,6 +785,9 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             setTextColor(if (isUser) 0xFFFFFFFF.toInt() else 0xFF263238.toInt())
             background = ContextCompat.getDrawable(this@MainActivity, if (isUser) R.drawable.bg_bubble_user else R.drawable.bg_bubble_ai)
             setLineSpacing(3f, 1f)
+            // 长按可选中并复制(帮助页有这条承诺)。AI 气泡是流式追加的,等它说完再开,
+            // 免得追加与选区互相打架 —— 见 closeAiLine()
+            if (isUser) setTextIsSelectable(true)
         }
         val lp = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -689,7 +801,12 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         return tv
     }
 
+    /**
+     * AI 这句说完了(或被打断):这时才把「长按选中复制」打开。
+     * 流式追加期间保持关闭,避免每次 append 都冲掉正在拉的选区。
+     */
     private fun closeAiLine() {
+        currentAiBubble?.setTextIsSelectable(true)
         currentAiBubble = null
     }
 

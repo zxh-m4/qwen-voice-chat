@@ -87,8 +87,16 @@ object SessionPresets {
         ),
     )
 
-    /** 「自定义语言」在角色下拉里的 key(第九项,语言名由用户输入)。 */
+    /** 使用模式:常规「语言老师」陪伴对话 / 「外语转述」只把你说的话转述成所选外语。 */
+    const val MODE_TEACHER = "teacher"
+    const val MODE_RESTATE = "restate"
+
+    /**
+     * 「自定义」档位的 key —— 老师模式 / 转述模式各一个,
+     * 两个档位共用用户挑的同一个语种(见 SettingsStore.customLanguage)。
+     */
     const val CUSTOM_KEY = "custom_teacher"
+    const val CUSTOM_RESTATE_KEY = "custom_restate"
 
     /** 语言名长度上限:只是不让提示词被塞进超长文本(「巴西葡萄牙语」这类也够写)。 */
     const val CUSTOM_LANGUAGE_MAX = 30
@@ -119,11 +127,73 @@ object SessionPresets {
         raw.trim().replace(Regex("\\s+"), " ").take(CUSTOM_LANGUAGE_MAX)
 
     /**
-     * 角色 key → 预设。自定义语言要额外带上用户填的语言名;
-     * 名字为空(没填过)时回落到默认预设,不拿空串去构造提示词。
+     * 转述模式的目标语种档位。teacherKey 用于切换模式时把同语种对应过去,
+     * voice 与老师模式同语种保持一致(音色跟语种走,不跟模式走)。
      */
-    fun resolve(key: String, customLanguage: String): Preset =
-        if (key == CUSTOM_KEY && customLanguage.isNotBlank()) custom(customLanguage) else byKey(key)
+    data class RestateLang(val key: String, val teacherKey: String, val promptLang: String, val voice: String)
+
+    val RESTATE = listOf(
+        RestateLang("restate_english", "english_teacher", "英语", "Tina"),
+        RestateLang("restate_japanese", "japanese_teacher", "日语", "Ono Anna"),
+        RestateLang("restate_russian", "russian_teacher", "俄语", "Katerina"),
+        RestateLang("restate_chinese", "chinese_teacher", "中文(普通话)", "Tina"),
+        RestateLang("restate_spanish", "spanish_teacher", "西班牙语", "Sonrisa"),
+        RestateLang("restate_french", "french_teacher", "法语", "Emilien"),
+        RestateLang("restate_korean", "korean_teacher", "韩语", "Sohee"),
+        RestateLang("restate_german", "german_teacher", "德语", "Ingrid"),
+    )
+
+    /**
+     * 转述提示词 —— 与 v1.5-trial 实验版同一套思路:人格换成「转述者」,
+     * 用「任何情况下都只输出转述内容本身」把输出锁死,不解释、不寒暄、不教学。
+     * 这是它能当实时翻译用的关键,不要往里面加老师的成分。
+     */
+    private fun restateInstructions(lang: String): String =
+        "你是转述者。【最重要规则,不可违反】任何情况下都只输出转述内容本身 —— " +
+            "不回答、不提问、不延伸话题,不解释、不寒暄、不加任何前后缀。\n" +
+            "用户用中文或其他语言说话时,你用地道自然的" + lang + "把意思说出来;" +
+            "用户已经用" + lang + "说话时,你用更地道自然的说法重述一遍。\n" +
+            "输出只有转述结果本身,不要出现任何其他文字。"
+
+    /** 内置转述档位 → 预设。 */
+    fun restaterFor(l: RestateLang): Preset =
+        Preset(l.key, l.promptLang + "转述", restateInstructions(l.promptLang), voice = l.voice, enableSearch = false)
+
+    /** 自定义语种的转述预设。 */
+    fun restater(customLanguage: String): Preset {
+        val lang = normalizeLanguage(customLanguage)
+        return Preset(CUSTOM_RESTATE_KEY, lang + "转述", restateInstructions(lang), voice = CUSTOM_VOICE, enableSearch = false)
+    }
+
+    /** 某种模式下的档位顺序(下拉用):八个内置 + 末尾的「自定义」。 */
+    fun keysFor(mode: String): List<String> =
+        if (mode == MODE_RESTATE) RESTATE.map { it.key } + CUSTOM_RESTATE_KEY
+        else ALL.map { it.key } + CUSTOM_KEY
+
+    /** 某种模式下的「自定义」档位 key。 */
+    fun customKeyFor(mode: String): String = if (mode == MODE_RESTATE) CUSTOM_RESTATE_KEY else CUSTOM_KEY
+
+    /** 切换模式时尽量保持同一语种;对不上(或 key 不认识)就回该模式的默认档。 */
+    fun keyInMode(key: String, mode: String): String {
+        if (keysFor(mode).contains(key)) return key
+        if (mode == MODE_RESTATE) {
+            if (key == CUSTOM_KEY) return CUSTOM_RESTATE_KEY
+            return RESTATE.firstOrNull { it.teacherKey == key }?.key ?: keysFor(mode).first()
+        }
+        if (key == CUSTOM_RESTATE_KEY) return CUSTOM_KEY
+        return RESTATE.firstOrNull { it.key == key }?.teacherKey ?: keysFor(mode).first()
+    }
+
+    /**
+     * 角色 key → 预设(四种 key 都认:老师档、老师自定义档、转述档、转述自定义档)。
+     * 自定义档的语言名为空(没选过)时回落到默认预设,不拿空串去构造提示词。
+     */
+    fun resolve(key: String, customLanguage: String): Preset {
+        if (key == CUSTOM_KEY && customLanguage.isNotBlank()) return custom(customLanguage)
+        if (key == CUSTOM_RESTATE_KEY && customLanguage.isNotBlank()) return restater(customLanguage)
+        RESTATE.firstOrNull { it.key == key }?.let { return restaterFor(it) }
+        return byKey(key)
+    }
 
     const val MODEL = "qwen3.8-omni-flash-realtime"
 

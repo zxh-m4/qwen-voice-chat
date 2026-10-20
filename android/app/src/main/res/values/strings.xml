@@ -33,10 +33,38 @@
     <string name="preset_custom">自定义语言…</string>
     <string name="preset_custom_label">%1$s老师</string>
     <string name="dlg_custom_lang_title">自定义语言</string>
-    <string name="dlg_custom_lang_msg">输入你想练习的语言(中英文都可以),例如:意大利语 / 泰语 / Italian</string>
+    <string name="dlg_custom_lang_msg">输入语言名(中英文都可以),例如:意大利语 / 泰语 / Italian</string>
     <string name="dlg_custom_lang_hint">例如:意大利语</string>
-    <string name="dlg_custom_lang_note">角色选「自定义语言」时生效;留空表示不修改。语速、纠音与八位老师一致,音色固定。</string>
+    <string name="dlg_custom_lang_note">角色选「自定义语言」时生效;「语言老师」与「外语转述」两种模式共用同一个语种。语速、纠音与八位老师一致,音色固定。</string>
     <string name="toast_need_custom_lang">请输入语言名称</string>
+    <string name="dlg_custom_lang_other">其他(手动输入)…</string>
+
+    <!-- 使用模式(设置里切换) -->
+    <string name="dlg_mode_label">使用模式</string>
+    <string name="mode_teacher">语言老师</string>
+    <string name="mode_restate">外语转述</string>
+    <string name="dlg_mode_note">「语言老师」陪你练口语、纠发音;「外语转述」不和你对话,只把你说的话用地道的外语转述出来。转述成哪种外语由主界面「角色」下拉决定(显示为「英语转述」等),切换即重新开始。</string>
+
+    <!-- 转述档位标签 + 常用语种名(与「自定义语言」下拉共用) -->
+    <string name="preset_restate_label">%1$s转述</string>
+    <string name="langname_english">英语</string>
+    <string name="langname_japanese">日语</string>
+    <string name="langname_russian">俄语</string>
+    <string name="langname_chinese">中文</string>
+    <string name="langname_spanish">西班牙语</string>
+    <string name="langname_french">法语</string>
+    <string name="langname_korean">韩语</string>
+    <string name="langname_german">德语</string>
+    <string name="langname_italian">意大利语</string>
+    <string name="langname_portuguese">葡萄牙语</string>
+    <string name="langname_arabic">阿拉伯语</string>
+    <string name="langname_thai">泰语</string>
+    <string name="langname_vietnamese">越南语</string>
+    <string name="langname_indonesian">印尼语</string>
+    <string name="langname_turkish">土耳其语</string>
+    <string name="langname_dutch">荷兰语</string>
+    <string name="langname_polish">波兰语</string>
+
     <!-- 语言切换 -->
     <string name="lang_title">语言 Language</string>
     <string name="lang_btn_en">EN</string>
@@ -95,7 +123,6 @@
     <string name="about_entry">关于</string>
     <string name="about_oss_notice">开源软件声明</string>
     <string name="about_privacy_policy">隐私政策</string>
-    <string name="about_beian_hint">(长按可复制 · 点击查看工信部查询)</string>
     <string name="about_beian_copied">备案号已复制</string>
     <string name="about_no_browser">未找到可打开网页的浏览器</string>
 

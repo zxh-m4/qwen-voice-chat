@@ -15,17 +15,16 @@ class AboutTextTest {
     }
 
     @Test
-    fun beianLineShowsTheNumber() {
+    fun beianLineIsJustTheNumberWithArrow() {
         val no = "粤ICP备2026154313号-1A"
-        assertTrue(AboutText.beianLine(true, no).contains(no))
-        assertTrue(AboutText.beianLine(false, no).contains(no))
+        assertEquals("$no ›", AboutText.beianLine(no))
     }
 
     /** 备案号未填(空串/纯空白)时整行不出现,不留空白占位。 */
     @Test
     fun beianLineDisappearsWhenUnfilled() {
-        assertEquals("", AboutText.beianLine(true, ""))
-        assertEquals("", AboutText.beianLine(false, "   "))
+        assertEquals("", AboutText.beianLine(""))
+        assertEquals("", AboutText.beianLine("   "))
     }
 
     @Test

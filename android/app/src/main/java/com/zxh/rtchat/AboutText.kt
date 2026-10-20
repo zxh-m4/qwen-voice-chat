@@ -17,10 +17,9 @@ object AboutText {
     fun versionLine(zh: Boolean, versionName: String): String =
         if (zh) "版本:$versionName" else "Version: $versionName"
 
-    /** 备案号未填(空串/纯空白)时返回空串,整行不占位 —— 与帮助页的 BEIAN_NO 约定一致。 */
-    fun beianLine(zh: Boolean, beianNo: String): String =
-        if (beianNo.isBlank()) ""
-        else if (zh) "备案号:$beianNo" else "ICP filing No.: $beianNo"
+    /** 备案号行:只显示号码本体 +「›」箭头(暗示可点),未填时返回空串不占位。中英显示相同。 */
+    fun beianLine(beianNo: String): String =
+        if (beianNo.isBlank()) "" else "$beianNo ›"
 
     /** 隐私政策正文。自 2026-10-13 起这里是唯一真源 —— 帮助页不再重复该段。 */
     fun privacyNotice(zh: Boolean): String = if (zh) PRIVACY_ZH else PRIVACY_EN
