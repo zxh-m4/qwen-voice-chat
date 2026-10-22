@@ -81,6 +81,25 @@ class AboutTextTest {
         }
     }
 
+    /** 投诉建议渠道:文案必须给出 GitHub issues 地址,并说明本应用无注册/发布功能。 */
+    @Test
+    fun feedbackNoticeGivesTheIssueTracker() {
+        val zh = AboutText.feedbackNotice(true)
+        assertTrue(zh.contains("反馈"))
+        assertTrue(zh.contains(AboutText.FEEDBACK_URL))
+        assertTrue(zh.contains("违法有害信息"))
+        assertTrue(zh.contains("无用户注册"))
+
+        val en = AboutText.feedbackNotice(false)
+        assertTrue(en.contains(AboutText.FEEDBACK_URL))
+        assertTrue(en.contains("no user registration"))
+    }
+
+    @Test
+    fun feedbackTargetIsTheGithubIssuePage() {
+        assertEquals("https://github.com/zxh-m4/qwen-voice-chat/issues", AboutText.FEEDBACK_URL)
+    }
+
     @Test
     fun copyrightLineNamesTheAuthor() {
         assertTrue(AboutText.copyrightLine(true).contains(AboutText.AUTHOR))

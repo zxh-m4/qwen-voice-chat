@@ -11,11 +11,17 @@ object AboutText {
     /** 工信部备案查询系统:进去后选「APP」,输入备案号即可核验真伪。 */
     const val BEIAN_URL = "https://beian.miit.gov.cn"
 
+    /** 投诉建议渠道:GitHub 问题反馈页。 */
+    const val FEEDBACK_URL = "https://github.com/zxh-m4/qwen-voice-chat/issues"
+
     /** 与帮助页署名同一人名,版权行使用。 */
     const val AUTHOR = "笑晗"
 
     fun versionLine(zh: Boolean, versionName: String): String =
         if (zh) "版本:$versionName" else "Version: $versionName"
+
+    /** 投诉建议正文:说明反馈渠道,并声明本应用无注册与内容发布功能(合规口径)。 */
+    fun feedbackNotice(zh: Boolean): String = if (zh) FEEDBACK_ZH else FEEDBACK_EN
 
     /** 备案号行:只显示号码本体 +「›」箭头(暗示可点),未填时返回空串不占位。中英显示相同。 */
     fun beianLine(beianNo: String): String =
@@ -30,6 +36,20 @@ object AboutText {
     fun copyrightLine(zh: Boolean): String =
         if (zh) "Copyright © 2026 $AUTHOR 保留所有权利。"
         else "Copyright © 2026 $AUTHOR. All rights reserved."
+
+    private val FEEDBACK_ZH = listOf(
+        "如您在使用中遇到问题,或发现应用内存在违法有害信息,可通过以下渠道反馈:",
+        "· GitHub 问题反馈页:$FEEDBACK_URL",
+        "本人会及时查看并处理。因本应用无用户注册和内容发布功能,",
+        "反馈主要涉及功能问题与使用体验。",
+    ).joinToString("\n")
+
+    private val FEEDBACK_EN = listOf(
+        "If you run into a problem, or find illegal or harmful content in the app, please report it here:",
+        "· GitHub issues: $FEEDBACK_URL",
+        "I will review and handle reports promptly. This app has no user registration",
+        "or content-publishing features, so reports mainly concern functionality and user experience.",
+    ).joinToString("\n")
 
     private val PRIVACY_ZH = listOf(
         "· 你的语音会实时上传至阿里云百炼进行识别与合成,用于生成对话回复;",

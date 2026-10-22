@@ -371,6 +371,13 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         if (store.workspaceId.isNotEmpty()) {
             editWs.hint = getString(R.string.hint_ws_saved)
         }
+        // 接入地域:北京默认 / 新加坡(凭据与费用口径均按所选地域)
+        val spinnerRegion = view.findViewById<Spinner>(R.id.spinnerRegion)
+        val regionItems = listOf(getString(R.string.region_beijing), getString(R.string.region_singapore))
+        spinnerRegion.adapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_dropdown_item, regionItems,
+        )
+        spinnerRegion.setSelection(if (store.region == SettingsStore.REGION_SINGAPORE) 1 else 0, false)
         // 使用模式:语言老师 / 外语转述(改了要换档并重建界面,见保存处)
         val radioMode = view.findViewById<RadioGroup>(R.id.radioMode)
         radioMode.check(
@@ -456,6 +463,11 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                 if (modeChanged) {
                     store.mode = newMode
                     store.presetKey = SessionPresets.keyInMode(store.presetKey, newMode)
+                }
+                store.region = if (spinnerRegion.selectedItemPosition == 1) {
+                    SettingsStore.REGION_SINGAPORE
+                } else {
+                    SettingsStore.REGION_BEIJING
                 }
                 store.save(key, ws)
                 store.micGainLevel = buttonIdToMicLevel(radioMic.checkedRadioButtonId)
@@ -577,6 +589,8 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                     AboutText.privacyNotice(zh),
                 )
             }
+        add(getString(R.string.about_feedback), 14f, 0xFF2C6EB5.toInt(), topDp = 6)
+            .setOnClickListener { showFeedbackDialog(zh) }
 
         // BEIAN_NO 未填时整行不出现,不留空白占位
         val beian = AboutText.beianLine(BuildConfig.BEIAN_NO)
@@ -610,6 +624,31 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             .setView(ScrollView(this).apply { addView(tv) })
             .setPositiveButton(getString(R.string.btn_ok), null)
             .show()
+    }
+
+    /** 投诉建议子页:正文 + 一键打开 GitHub 问题反馈页。 */
+    private fun showFeedbackDialog(zh: Boolean) {
+        val tv = TextView(this).apply {
+            text = AboutText.feedbackNotice(zh)
+            setTextColor(0xFF37474F.toInt())
+            textSize = 14f
+            setLineSpacing(4f, 1f)
+            setPadding(dp(20), dp(12), dp(20), dp(12))
+        }
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.about_feedback))
+            .setView(ScrollView(this).apply { addView(tv) })
+            .setPositiveButton(getString(R.string.btn_ok), null)
+            .setNeutralButton(getString(R.string.about_feedback_open)) { _, _ -> openFeedbackSite() }
+            .show()
+    }
+
+    private fun openFeedbackSite() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AboutText.FEEDBACK_URL)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.about_no_browser), Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun copyBeianNumber() {

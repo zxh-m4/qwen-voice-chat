@@ -14,7 +14,7 @@ class SettingsStore(context: Context) {
 
     private val prefs = context.getSharedPreferences("rtchat_settings", Context.MODE_PRIVATE)
 
-    data class Credentials(val apiKey: String, val workspaceId: String) {
+    data class Credentials(val apiKey: String, val workspaceId: String, val region: String) {
         val isComplete: Boolean get() = apiKey.isNotBlank() && workspaceId.isNotBlank()
     }
 
@@ -25,6 +25,17 @@ class SettingsStore(context: Context) {
     var workspaceId: String
         get() = readCred(KEY_WS)
         set(value) = writeCred(KEY_WS, value)
+
+    /** 接入地域:北京/新加坡。API Key 与业务空间按地域隔离,切换后需填对应地域的凭据。 */
+    var region: String
+        get() = prefs.getString("region", REGION_BEIJING)
+            ?.takeIf { it == REGION_SINGAPORE } ?: REGION_BEIJING
+        set(value) {
+            prefs.edit().putString(
+                "region",
+                if (value == REGION_SINGAPORE) REGION_SINGAPORE else REGION_BEIJING,
+            ).apply()
+        }
 
     /** 界面语言("en" / "zh"),默认中文。修改后需 recreate() 才生效。 */
     var appLanguage: String
@@ -67,11 +78,11 @@ class SettingsStore(context: Context) {
         get() {
             val k = apiKey
             val w = workspaceId
-            if (k.isNotEmpty() && w.isNotEmpty()) return Credentials(k, w)
+            if (k.isNotEmpty() && w.isNotEmpty()) return Credentials(k, w, region)
             // 试用版:回退到内置凭据(加密存储;正式版为空串->仍走首次配置弹窗)
             val builtinKey = SecretVault.reveal(BuildConfig.BUILTIN_KEY_ENC)
             val builtinWs = SecretVault.reveal(BuildConfig.BUILTIN_WS_ENC)
-            return Credentials(k.ifEmpty { builtinKey }, w.ifEmpty { builtinWs })
+            return Credentials(k.ifEmpty { builtinKey }, w.ifEmpty { builtinWs }, region)
         }
 
     fun save(apiKey: String, workspaceId: String) {
@@ -102,5 +113,7 @@ class SettingsStore(context: Context) {
     companion object {
         private const val KEY_API = "api_key"
         private const val KEY_WS = "workspace_id"
+        const val REGION_BEIJING = "beijing"
+        const val REGION_SINGAPORE = "singapore"
     }
 }

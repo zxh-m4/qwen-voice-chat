@@ -4,6 +4,8 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.annotation.ChecksSdkIntAtLeast
+import androidx.annotation.RequiresApi
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -30,6 +32,7 @@ object SecureStore {
     private const val TRANSFORM = "AES/GCM/NoPadding"
     private const val GCM_TAG_BITS = 128
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.M)
     private fun supported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
 
     /** 存储值是否已是密文。 */
@@ -85,6 +88,7 @@ object SecureStore {
         null
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun createKey(): SecretKey {
         existingKey()?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)

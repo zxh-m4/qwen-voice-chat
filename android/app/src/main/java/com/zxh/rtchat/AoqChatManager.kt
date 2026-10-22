@@ -52,7 +52,8 @@ class AoqChatManager(
     companion object {
         private const val TAG = "AoqChat"
         const val MODEL = SessionPresets.MODEL
-        const val REGION_HOST = "cn-beijing.maas.aliyuncs.com"
+        const val REGION_HOST_BEIJING = "cn-beijing.maas.aliyuncs.com"
+        const val REGION_HOST_SINGAPORE = "ap-southeast-1.maas.aliyuncs.com"
     }
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -189,7 +190,12 @@ class AoqChatManager(
         if (!creds.isComplete) {
             throw RuntimeException("未配置凭据:请在设置里填入 API Key 和业务空间 ID")
         }
-        val host = "${creds.workspaceId}.$REGION_HOST"
+        val regionHost = if (creds.region == SettingsStore.REGION_SINGAPORE) {
+            REGION_HOST_SINGAPORE
+        } else {
+            REGION_HOST_BEIJING
+        }
+        val host = "${creds.workspaceId}.$regionHost"
         val url = URL("https://$host/api/v1/webrtc/realtime?model=$MODEL")
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "POST"
@@ -324,13 +330,15 @@ class AoqChatManager(
         val spk = am.isSpeakerphoneOn
         val device = if (android.os.Build.VERSION.SDK_INT >= 31) {
             am.communicationDevice?.let { nameOfAudioType(it.type) } ?: "未指定"
-        } else {
+        } else if (android.os.Build.VERSION.SDK_INT >= 23) {
             try {
                 val outs = am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS)
                 if (outs.isEmpty()) "无" else outs.joinToString("+") { nameOfAudioType(it.type) }
             } catch (e: Exception) {
                 "查询失败"
             }
+        } else {
+            "未知"
         }
         return "mode=$mode(3=通话) 扬声器=$spk 通信设备/可用输出=$device"
     }
@@ -425,11 +433,13 @@ class AoqChatManager(
         return try {
             if (android.os.Build.VERSION.SDK_INT >= 31) {
                 am.communicationDevice?.let { it.type in wanted } ?: false
-            } else {
+            } else if (android.os.Build.VERSION.SDK_INT >= 23) {
                 // Android 11 及以下没有 communicationDevice,退回枚举输出设备,
                 // 但排除"仅蓝牙开启未连接"的情况:只有 SCO 出现才算耳机。
                 am.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS)
                     .any { it.type in wanted }
+            } else {
+                false
             }
         } catch (e: Exception) {
             AppLog.w("检测外接音频设备失败:${e.message}")

@@ -91,6 +91,10 @@
     <string name="dlg_key_hint">sk-xxxxxxxx</string>
     <string name="dlg_ws_label">Workspace ID (Bailian console → Workspace list; unique per account — use your own; e.g. llm-xxxxxxxx)</string>
     <string name="dlg_ws_hint">llm-xxxxxxxx</string>
+    <string name="dlg_region_label">Region</string>
+    <string name="region_beijing">Beijing (default)</string>
+    <string name="region_singapore">Singapore</string>
+    <string name="dlg_region_note">API keys and workspaces are region-specific: after choosing Singapore, enter credentials from the Singapore region. Cost estimates still use Beijing pricing; your Alibaba Cloud bill is authoritative. Takes effect on the next connection.</string>
     <string name="dlg_mic_label">Mic sensitivity</string>
     <string name="mic_1">Very high — default, upload as-is</string>
     <string name="mic_2">High — slightly lowered (−6 dB)</string>
@@ -123,6 +127,8 @@
     <string name="about_entry">About</string>
     <string name="about_oss_notice">Open-source notices</string>
     <string name="about_privacy_policy">Privacy policy</string>
+    <string name="about_feedback">Feedback</string>
+    <string name="about_feedback_open">Open feedback page</string>
     <string name="about_beian_copied">Filing number copied</string>
     <string name="about_no_browser">No browser available to open the page</string>
 

@@ -91,6 +91,10 @@
     <string name="dlg_key_hint">sk-xxxxxxxx</string>
     <string name="dlg_ws_label">业务空间 ID(百炼控制台 → 业务空间列表;**每个账号不同,请填自己的**,形如 llm-xxxxxxxx)</string>
     <string name="dlg_ws_hint">llm-xxxxxxxx</string>
+    <string name="dlg_region_label">接入地域</string>
+    <string name="region_beijing">北京(默认)</string>
+    <string name="region_singapore">新加坡</string>
+    <string name="dlg_region_note">API Key 和业务空间按地域隔离:选新加坡后请填写新加坡地域的凭据。费用估算仍按北京价显示,实际以阿里云账单为准。更改在下次连接后生效。</string>
     <string name="dlg_mic_label">麦克风灵敏度</string>
     <string name="mic_1">很高 —— 默认,原样上传</string>
     <string name="mic_2">高 —— 整体压低一点(−6 dB)</string>
@@ -123,6 +127,8 @@
     <string name="about_entry">关于</string>
     <string name="about_oss_notice">开源软件声明</string>
     <string name="about_privacy_policy">隐私政策</string>
+    <string name="about_feedback">投诉建议</string>
+    <string name="about_feedback_open">打开反馈页</string>
     <string name="about_beian_copied">备案号已复制</string>
     <string name="about_no_browser">未找到可打开网页的浏览器</string>
 
