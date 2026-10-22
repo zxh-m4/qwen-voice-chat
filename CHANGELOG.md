@@ -10,6 +10,13 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
+## v1.9 — 2026-10-22
+- **Region selection / 接入地域** — Settings now offers **Beijing (default)** and **Singapore**. The runtime endpoint is built from the choice (`cn-beijing.maas.aliyuncs.com` / `ap-southeast-1.maas.aliyuncs.com`), so users outside mainland China can connect to a nearer region. Bailian API keys and workspaces are isolated per region — switching to Singapore requires credentials issued in that region. The usage estimate keeps Beijing pricing; the actual cost follows the Alibaba Cloud bill. The change takes effect on the next connection.
+  （设置里可选北京（默认）/ 新加坡，接入域名按所选地域拼接，用于在国外降低网络延迟；Key 与业务空间按地域隔离，切新加坡需填该地域凭据；费用估算仍按北京价显示，实际以阿里云账单为准，下次连接生效。）
+- **Feedback channel / 投诉建议** — **Settings → About** gains a "Feedback" entry: a page explaining that problems, or illegal/harmful content found in the app, can be reported through the GitHub issues page (`github.com/zxh-m4/qwen-voice-chat/issues`), plus a button that opens the issue page. The copy also states that the app has no user registration or content-publishing features, so reports mainly concern functionality and user experience. Chinese and English versions included; the copy and URL are locked by unit tests.
+  （「设置 → 关于」新增投诉建议入口：说明遇到问题或发现违法有害信息可通过 GitHub 问题反馈页反馈，子页提供「打开反馈页」按钮；同时声明本应用无用户注册和内容发布功能，反馈主要涉及功能问题与使用体验。中英双语文案，地址与文案均有单测锁定。）
+- Android: `versionCode 10` / `versionName 1.9`; unit tests 33 → **35**, all green; no binary is distributed (build from source)
+
 ## v1.8 — 2026-10-20
 - **Custom language as a dropdown / 自定义语言改为下拉** — the ninth role now offers nine common languages (Italian, Portuguese, Arabic, Thai, Vietnamese, Indonesian, Turkish, Dutch, Polish) with "Other (type manually)" at the end, in both the role list and Settings.
   （角色下拉第九项改为常用语种列表，末尾「其他(手动输入)」；主界面与设置两个入口都改，旧版手输且不在列表的语种会自动补进下拉。）
