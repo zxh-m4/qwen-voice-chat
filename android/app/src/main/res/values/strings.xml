@@ -35,7 +35,7 @@
     <string name="dlg_custom_lang_title">自定义语言</string>
     <string name="dlg_custom_lang_msg">输入语言名(中英文都可以),例如:意大利语 / 泰语 / Italian</string>
     <string name="dlg_custom_lang_hint">例如:意大利语</string>
-    <string name="dlg_custom_lang_note">角色选「自定义语言」时生效;「语言老师」与「外语转述」两种模式共用同一个语种。语速、纠音与八位老师一致,音色固定。</string>
+    <string name="dlg_custom_lang_note">角色选「自定义语言」时生效;「语言老师」「外语转述」「口译」三种模式共用同一个语种。语速、纠音与八位老师一致,音色固定。</string>
     <string name="toast_need_custom_lang">请输入语言名称</string>
     <string name="dlg_custom_lang_other">其他(手动输入)…</string>
 
@@ -43,10 +43,12 @@
     <string name="dlg_mode_label">使用模式</string>
     <string name="mode_teacher">语言老师</string>
     <string name="mode_restate">外语转述</string>
-    <string name="dlg_mode_note">「语言老师」陪你练口语、纠发音;「外语转述」不和你对话,只把你说的话用地道的外语转述出来。转述成哪种外语由主界面「角色」下拉决定(显示为「英语转述」等),切换即重新开始。</string>
+    <string name="mode_interpret">口译</string>
+    <string name="dlg_mode_note">「语言老师」陪你练口语、纠发音;「外语转述」不和你对话,只把你说的话用地道的外语转述出来;「口译」为两个人面对面交流设计:你说中文它翻成外语,对方说外语它翻回中文,译文同时显示在字幕里。转述/口译成哪种外语由主界面「角色」下拉决定(显示为「英语转述」「英语 ⇄ 中文」等),切换即重新开始。</string>
 
-    <!-- 转述档位标签 + 常用语种名(与「自定义语言」下拉共用) -->
+    <!-- 转述/口译档位标签 + 常用语种名(与「自定义语言」下拉共用) -->
     <string name="preset_restate_label">%1$s转述</string>
+    <string name="preset_interpret_label">%1$s ⇄ 中文</string>
     <string name="langname_english">英语</string>
     <string name="langname_japanese">日语</string>
     <string name="langname_russian">俄语</string>

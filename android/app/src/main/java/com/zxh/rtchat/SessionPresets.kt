@@ -87,16 +87,18 @@ object SessionPresets {
         ),
     )
 
-    /** 使用模式:常规「语言老师」陪伴对话 / 「外语转述」只把你说的话转述成所选外语。 */
+    /** 使用模式:「语言老师」陪伴对话 / 「外语转述」只把你说的话转述成所选外语 / 「口译」中文 ⇄ 目标语双向互译。 */
     const val MODE_TEACHER = "teacher"
     const val MODE_RESTATE = "restate"
+    const val MODE_INTERPRET = "interpret"
 
     /**
-     * 「自定义」档位的 key —— 老师模式 / 转述模式各一个,
-     * 两个档位共用用户挑的同一个语种(见 SettingsStore.customLanguage)。
+     * 「自定义」档位的 key —— 老师 / 转述 / 口译模式各一个,
+     * 三个档位共用用户挑的同一个语种(见 SettingsStore.customLanguage)。
      */
     const val CUSTOM_KEY = "custom_teacher"
     const val CUSTOM_RESTATE_KEY = "custom_restate"
+    const val CUSTOM_INTERPRET_KEY = "custom_interpret"
 
     /** 语言名长度上限:只是不让提示词被塞进超长文本(「巴西葡萄牙语」这类也够写)。 */
     const val CUSTOM_LANGUAGE_MAX = 30
@@ -165,32 +167,101 @@ object SessionPresets {
         return Preset(CUSTOM_RESTATE_KEY, lang + "转述", restateInstructions(lang), voice = CUSTOM_VOICE, enableSearch = false)
     }
 
-    /** 某种模式下的档位顺序(下拉用):八个内置 + 末尾的「自定义」。 */
-    fun keysFor(mode: String): List<String> =
-        if (mode == MODE_RESTATE) RESTATE.map { it.key } + CUSTOM_RESTATE_KEY
-        else ALL.map { it.key } + CUSTOM_KEY
+    /**
+     * 口译提示词 —— 逐字移植自鸿蒙版(安卓 v2.0 新增)。
+     * 与「转述」的关键区别:转述是单向的,口译是双向的(对方说外语要翻回中文),
+     * 否则对方说完你朋友根本听不懂。数字/时间/价格/地名要求准确保留 ——
+     * 旅行场景问路、订房、结账全靠这些。文案是调过的,不要顺手改动。
+     */
+    private fun interpretInstructions(lang: String): String =
+        "你是一名实时口语译员,在说中文的用户与说" + lang + "的人之间做双向口译。\n" +
+            "【最重要规则,不可违反】任何情况下都只输出译文本身 —— " +
+            "不回答、不提问、不延伸话题,不解释、不寒暄、不加任何前后缀、不做任何补充。\n" +
+            "\n" +
+            "按你听到的语言决定译向:\n" +
+            "· 听到中文(或除" + lang + "以外的任何语言)时,用地道自然的" + lang + "把意思说出来;\n" +
+            "· 听到" + lang + "时,用简洁自然的中文把意思说出来。\n" +
+            "\n" +
+            "要求:\n" +
+            "· 只译意思,保留说话人的语气和礼貌程度,不要逐字直译;\n" +
+            "· 数字、时间、价格、地名、人名必须准确保留;\n" +
+            "· 对方说得含糊或只说了半句时,只译你听到的部分,不要自己补全、不要猜测;\n" +
+            "· 不要把你自己的任何话加进去。"
+
+    /** 内置口译档位 → 预设。key 由转述 key 推导,保证三模式同语种永远对齐。 */
+    fun interpreterFor(l: RestateLang): Preset =
+        Preset(
+            "interpret_" + l.key.removePrefix("restate_"),
+            l.promptLang + " ⇄ 中文",
+            interpretInstructions(l.promptLang),
+            voice = CUSTOM_VOICE,
+            enableSearch = false,
+        )
+
+    /**
+     * 七个内置口译档(除中文 —— 中文 ⇄ 中文没有意义)。
+     * 音色统一 Tina:口译一轮里既要说外语又要说中文,专属音色未必覆盖中文;
+     * Tina 是唯一确认覆盖「中文 + 28 种外语」的通用音色。
+     */
+    val INTERPRET: List<Preset> = RESTATE.filter { it.key != "restate_chinese" }.map { interpreterFor(it) }
+
+    /** 自定义语种的口译预设。 */
+    fun interpreter(customLanguage: String): Preset {
+        val lang = normalizeLanguage(customLanguage)
+        return Preset(CUSTOM_INTERPRET_KEY, lang + " ⇄ 中文", interpretInstructions(lang), voice = CUSTOM_VOICE, enableSearch = false)
+    }
+
+    /** 某种模式下的档位顺序(下拉用):内置档位 + 末尾的「自定义」。 */
+    fun keysFor(mode: String): List<String> = when (mode) {
+        MODE_RESTATE -> RESTATE.map { it.key } + CUSTOM_RESTATE_KEY
+        MODE_INTERPRET -> INTERPRET.map { it.key } + CUSTOM_INTERPRET_KEY
+        else -> ALL.map { it.key } + CUSTOM_KEY
+    }
 
     /** 某种模式下的「自定义」档位 key。 */
-    fun customKeyFor(mode: String): String = if (mode == MODE_RESTATE) CUSTOM_RESTATE_KEY else CUSTOM_KEY
+    fun customKeyFor(mode: String): String = when (mode) {
+        MODE_RESTATE -> CUSTOM_RESTATE_KEY
+        MODE_INTERPRET -> CUSTOM_INTERPRET_KEY
+        else -> CUSTOM_KEY
+    }
+
+    /** key → 语种 id;不认识的 key 返回空串。 */
+    private fun langIdOf(key: String): String = when {
+        key.endsWith("_teacher") -> key.removeSuffix("_teacher")
+        key.startsWith("restate_") -> key.removePrefix("restate_")
+        key.startsWith("interpret_") -> key.removePrefix("interpret_")
+        else -> ""
+    }
+
+    /** 语种 id + 模式 → 该模式的档位 key。 */
+    private fun keyOfLang(id: String, mode: String): String = when (mode) {
+        MODE_RESTATE -> "restate_" + id
+        MODE_INTERPRET -> "interpret_" + id
+        else -> id + "_teacher"
+    }
 
     /** 切换模式时尽量保持同一语种;对不上(或 key 不认识)就回该模式的默认档。 */
     fun keyInMode(key: String, mode: String): String {
-        if (keysFor(mode).contains(key)) return key
-        if (mode == MODE_RESTATE) {
-            if (key == CUSTOM_KEY) return CUSTOM_RESTATE_KEY
-            return RESTATE.firstOrNull { it.teacherKey == key }?.key ?: keysFor(mode).first()
+        val keys = keysFor(mode)
+        if (keys.contains(key)) return key
+        if (key == CUSTOM_KEY || key == CUSTOM_RESTATE_KEY || key == CUSTOM_INTERPRET_KEY) return customKeyFor(mode)
+        val id = langIdOf(key)
+        if (id.isNotEmpty()) {
+            val mapped = keyOfLang(id, mode)
+            if (keys.contains(mapped)) return mapped
         }
-        if (key == CUSTOM_RESTATE_KEY) return CUSTOM_KEY
-        return RESTATE.firstOrNull { it.key == key }?.teacherKey ?: keysFor(mode).first()
+        return keys.first()
     }
 
     /**
-     * 角色 key → 预设(四种 key 都认:老师档、老师自定义档、转述档、转述自定义档)。
+     * 角色 key → 预设(五种 key 都认:老师档、老师自定义档、转述档、转述自定义档、口译档/口译自定义档)。
      * 自定义档的语言名为空(没选过)时回落到默认预设,不拿空串去构造提示词。
      */
     fun resolve(key: String, customLanguage: String): Preset {
         if (key == CUSTOM_KEY && customLanguage.isNotBlank()) return custom(customLanguage)
         if (key == CUSTOM_RESTATE_KEY && customLanguage.isNotBlank()) return restater(customLanguage)
+        if (key == CUSTOM_INTERPRET_KEY && customLanguage.isNotBlank()) return interpreter(customLanguage)
+        INTERPRET.firstOrNull { it.key == key }?.let { return it }
         RESTATE.firstOrNull { it.key == key }?.let { return restaterFor(it) }
         return byKey(key)
     }

@@ -21,8 +21,8 @@ android {
         applicationId = "com.zxh.rtchat"
         minSdk = 21
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.9"
+        versionCode = 11
+        versionName = "2.0"
         // 备案号展示位:2026-10-13 管局下号后填入;空串=帮助页不显示备案信息段
         buildConfigField("String", "BEIAN_NO", "\"粤ICP备2026154313号-1A\"")
         ndk {

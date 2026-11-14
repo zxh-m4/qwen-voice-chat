@@ -10,6 +10,11 @@ Release notes for every version since the first working build (v1.0).
 > 注:v1.0 / v1.1 早于本仓库(仓库随 v1.2 于 2026-10-04 开源时建立),其源码未入库、
 > 构建产物保存在作者本地归档,不对外分发;此处补录以保持版本历史完整。
 
+## v2.0 — 2026-11-14
+- **Interpretation mode / 口译模式** — a third mode for two people talking face to face, each in their own language: sharing one phone, you speak Chinese and it translates into the selected foreign language; the other person speaks that language and it translates back into Chinese. The translation is spoken aloud while the subtitles show it in sync. Seven built-in pairs (English / Japanese / Russian / Spanish / French / Korean / German ⇄ Chinese — Chinese ⇄ Chinese is meaningless, so it is excluded) plus the shared custom-language slot. All interpretation slots use the Tina voice (the only voice confirmed to cover Chinese plus 28 foreign languages); the prompt keeps numbers, times, prices, place names and personal names accurate and never completes a half-heard sentence. Switching modes carries the language over (a Chinese slot falls back to the first pair). The prompt is ported verbatim from the HarmonyOS edition; the audio pipeline, subtitles and session protocol are unchanged.
+  （新增第三种使用模式「口译」：两个人面对面各说各的语言，共用一部手机——你说中文它翻成所选外语，对方说外语它翻回中文，译文语音播出的同时字幕同步显示。内置七档（英/日/俄/西/法/韩/德 ⇄ 中文，中文⇄中文无意义故不含），自定义语种三模式共用；音色统一 Tina（唯一确认覆盖中文+28 外语），提示词要求数字/时间/价格/地名/人名准确保留、半句只译半句。切模式保同语种（中文档回落首档）。提示词逐字移植自鸿蒙版；音频管线、字幕与会话协议不变。）
+- Android: `versionCode 11` / `versionName 2.0`; unit tests 35 → **45**, all green; no binary is distributed (build from source)
+
 ## v1.9 — 2026-10-22
 - **Region selection / 接入地域** — Settings now offers **Beijing (default)** and **Singapore**. The runtime endpoint is built from the choice (`cn-beijing.maas.aliyuncs.com` / `ap-southeast-1.maas.aliyuncs.com`), so users outside mainland China can connect to a nearer region. Bailian API keys and workspaces are isolated per region — switching to Singapore requires credentials issued in that region. The usage estimate keeps Beijing pricing; the actual cost follows the Alibaba Cloud bill. The change takes effect on the next connection.
   （设置里可选北京（默认）/ 新加坡，接入域名按所选地域拼接，用于在国外降低网络延迟；Key 与业务空间按地域隔离，切新加坡需填该地域凭据；费用估算仍按北京价显示，实际以阿里云账单为准，下次连接生效。）

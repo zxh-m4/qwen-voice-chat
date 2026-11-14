@@ -17,10 +17,10 @@ contributions are welcome.
 
 · Languages — the list in the app is not the full set. The speech model officially supports
   36 languages/dialects for speech generation (and 113 for recognition). This app ships 8
-  (tutors and restatement each have a slot) and the "Custom language" dropdown lists 9 more,
-  17 in total. For any language not listed (e.g. Cantonese, Ukrainian, Hebrew, Czech, Greek,
-  Swahili …) pick "Other (type manually)" at the end of the dropdown and type it in (English
-  or Chinese both work).
+  (tutors and restatement each have a slot; interpretation has seven, Chinese excluded) and
+  the "Custom language" dropdown lists 9 more, 17 in total. For any language not listed
+  (e.g. Cantonese, Ukrainian, Hebrew, Czech, Greek, Swahili …) pick "Other (type manually)"
+  at the end of the dropdown and type it in (English or Chinese both work).
 · The official language/voice set keeps changing; for the complete, up-to-date list see the
   official Alibaba Cloud Bailian documentation:
   · Voice list (with samples): https://help.aliyun.com/zh/model-studio/omni-voice-list
@@ -73,6 +73,18 @@ instead it restates everything you say in natural, fluent language — good for 
 · In every case the AI only restates — it never answers, asks, or drifts off topic.
 Which language to restate into is chosen from the Tutor dropdown on the main screen
 (shown as "Restate in English", etc.); switching starts over.
+This is a new experimental feature; rough edges are possible — feedback welcome.
+
+[Interpretation mode (experimental)]
+In Settings, switch "Mode" to "Interpretation" and the phone becomes a pocket interpreter
+for two people talking face to face, each in their own language:
+· You speak Chinese: the AI says the meaning in fluent, natural foreign language;
+· The other person speaks that language: the AI translates it back into concise, natural Chinese;
+· The translation also appears in the subtitles for both to read; numbers, times, prices and
+  place names are preserved accurately.
+The language pair is chosen from the Tutor dropdown on the main screen (shown as
+"English ⇄ Chinese", etc. — seven pairs, Chinese excluded); switching starts over.
+Share one phone and take turns speaking into it; in noisy places, stay close to the phone.
 This is a new experimental feature; rough edges are possible — feedback welcome.
 
 [Tips]

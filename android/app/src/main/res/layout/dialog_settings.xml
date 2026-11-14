@@ -185,6 +185,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/mode_restate"
                 android:textSize="14sp" />
+
+            <RadioButton
+                android:id="@+id/radioModeInterpret"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mode_interpret"
+                android:textSize="14sp" />
         </RadioGroup>
 
         <TextView

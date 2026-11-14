@@ -48,16 +48,20 @@ class SettingsStore(context: Context) {
         set(value) = prefs.edit().putInt("mic_gain_level", MicGain.normalize(value)).apply()
 
     /**
-     * 使用模式([SessionPresets.MODE_TEACHER] / [SessionPresets.MODE_RESTATE])。
+     * 使用模式([SessionPresets.MODE_TEACHER] / [SessionPresets.MODE_RESTATE] / [SessionPresets.MODE_INTERPRET])。
      * 修改后要重建界面(角色下拉的内容随模式变),见 MainActivity 设置保存处。
      */
     var mode: String
         get() = prefs.getString("mode", SessionPresets.MODE_TEACHER)
-            ?.takeIf { it == SessionPresets.MODE_RESTATE } ?: SessionPresets.MODE_TEACHER
+            ?.takeIf { it == SessionPresets.MODE_RESTATE || it == SessionPresets.MODE_INTERPRET } ?: SessionPresets.MODE_TEACHER
         set(value) {
             prefs.edit().putString(
                 "mode",
-                if (value == SessionPresets.MODE_RESTATE) SessionPresets.MODE_RESTATE else SessionPresets.MODE_TEACHER,
+                when (value) {
+                    SessionPresets.MODE_RESTATE -> SessionPresets.MODE_RESTATE
+                    SessionPresets.MODE_INTERPRET -> SessionPresets.MODE_INTERPRET
+                    else -> SessionPresets.MODE_TEACHER
+                },
             ).apply()
         }
 

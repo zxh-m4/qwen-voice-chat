@@ -168,7 +168,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
 
     // ---------- 界面语言 ----------
 
-    /** 角色下拉的条目:按当前使用模式取档位(老师:八位老师+自定义 / 转述:八种转述+自定义)。 */
+    /** 角色下拉的条目:按当前使用模式取档位(老师:八位 / 转述:八种 / 口译:七种,各+自定义)。 */
     private fun presetLabels(): List<String> =
         SessionPresets.keysFor(store.mode).map { roleLabel(it) }
 
@@ -303,6 +303,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
     private fun presetLabel(p: SessionPresets.Preset): String = when (p.key) {
         SessionPresets.CUSTOM_KEY -> getString(R.string.preset_custom_label, store.customLanguage)
         SessionPresets.CUSTOM_RESTATE_KEY -> getString(R.string.preset_restate_label, store.customLanguage)
+        SessionPresets.CUSTOM_INTERPRET_KEY -> getString(R.string.preset_interpret_label, store.customLanguage)
         else -> roleLabel(p.key)
     }
 
@@ -316,7 +317,7 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         "french_teacher" -> getString(R.string.preset_french)
         "korean_teacher" -> getString(R.string.preset_korean)
         "german_teacher" -> getString(R.string.preset_german)
-        SessionPresets.CUSTOM_KEY, SessionPresets.CUSTOM_RESTATE_KEY -> getString(R.string.preset_custom)
+        SessionPresets.CUSTOM_KEY, SessionPresets.CUSTOM_RESTATE_KEY, SessionPresets.CUSTOM_INTERPRET_KEY -> getString(R.string.preset_custom)
         "restate_english" -> restateLabel(R.string.langname_english)
         "restate_japanese" -> restateLabel(R.string.langname_japanese)
         "restate_russian" -> restateLabel(R.string.langname_russian)
@@ -325,12 +326,23 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
         "restate_french" -> restateLabel(R.string.langname_french)
         "restate_korean" -> restateLabel(R.string.langname_korean)
         "restate_german" -> restateLabel(R.string.langname_german)
+        "interpret_english" -> interpretLabel(R.string.langname_english)
+        "interpret_japanese" -> interpretLabel(R.string.langname_japanese)
+        "interpret_russian" -> interpretLabel(R.string.langname_russian)
+        "interpret_spanish" -> interpretLabel(R.string.langname_spanish)
+        "interpret_french" -> interpretLabel(R.string.langname_french)
+        "interpret_korean" -> interpretLabel(R.string.langname_korean)
+        "interpret_german" -> interpretLabel(R.string.langname_german)
         else -> key // 新增预设忘了配字符串时的兜底
     }
 
     /** 「英语转述」这类标签(语言名按界面语言取)。 */
     private fun restateLabel(langNameRes: Int): String =
         getString(R.string.preset_restate_label, getString(langNameRes))
+
+    /** 「英语 ⇄ 中文」这类标签(语言名按界面语言取)。 */
+    private fun interpretLabel(langNameRes: Int): String =
+        getString(R.string.preset_interpret_label, getString(langNameRes))
 
     private fun langName(lang: String): String =
         getString(if (lang == LocaleHelper.LANG_ZH) R.string.lang_name_zh else R.string.lang_name_en)
@@ -378,10 +390,14 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
             this, android.R.layout.simple_spinner_dropdown_item, regionItems,
         )
         spinnerRegion.setSelection(if (store.region == SettingsStore.REGION_SINGAPORE) 1 else 0, false)
-        // 使用模式:语言老师 / 外语转述(改了要换档并重建界面,见保存处)
+        // 使用模式:语言老师 / 外语转述 / 口译(改了要换档并重建界面,见保存处)
         val radioMode = view.findViewById<RadioGroup>(R.id.radioMode)
         radioMode.check(
-            if (store.mode == SessionPresets.MODE_RESTATE) R.id.radioModeRestate else R.id.radioModeTeacher,
+            when (store.mode) {
+                SessionPresets.MODE_RESTATE -> R.id.radioModeRestate
+                SessionPresets.MODE_INTERPRET -> R.id.radioModeInterpret
+                else -> R.id.radioModeTeacher
+            },
         )
         // 自定义语言:下拉选择(常用语种 + 末尾「其他(手动输入)…」)
         val customNames = customLangNames()
@@ -454,10 +470,10 @@ class MainActivity : AppCompatActivity(), AoqChatManager.ChatListener {
                 // 自定义语言:下拉里选中的语种(没动过就沿用已存值)
                 if (customLang.isNotEmpty()) store.customLanguage = customLang
                 // 使用模式:变了就换成新模式的同语种档位,并重建界面(角色下拉的内容随模式变,切换即重新开始)
-                val newMode = if (radioMode.checkedRadioButtonId == R.id.radioModeRestate) {
-                    SessionPresets.MODE_RESTATE
-                } else {
-                    SessionPresets.MODE_TEACHER
+                val newMode = when (radioMode.checkedRadioButtonId) {
+                    R.id.radioModeRestate -> SessionPresets.MODE_RESTATE
+                    R.id.radioModeInterpret -> SessionPresets.MODE_INTERPRET
+                    else -> SessionPresets.MODE_TEACHER
                 }
                 val modeChanged = newMode != store.mode
                 if (modeChanged) {

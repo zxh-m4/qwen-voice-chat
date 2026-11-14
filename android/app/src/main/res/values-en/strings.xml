@@ -35,7 +35,7 @@
     <string name="dlg_custom_lang_title">Custom language</string>
     <string name="dlg_custom_lang_msg">Enter a language name (English or Chinese both work), e.g. Italian / Thai / 意大利语</string>
     <string name="dlg_custom_lang_hint">e.g. Italian</string>
-    <string name="dlg_custom_lang_note">Used when the tutor is set to “Custom language”; shared by both the “Language tutor” and “Restatement” modes. Pace and corrections match the eight built-in tutors; the voice is fixed.</string>
+    <string name="dlg_custom_lang_note">Used when the tutor is set to “Custom language”; shared by the “Language tutor”, “Restatement” and “Interpretation” modes. Pace and corrections match the eight built-in tutors; the voice is fixed.</string>
     <string name="toast_need_custom_lang">Please enter a language name</string>
     <string name="dlg_custom_lang_other">Other (type manually)…</string>
 
@@ -43,10 +43,12 @@
     <string name="dlg_mode_label">Mode</string>
     <string name="mode_teacher">Language tutor</string>
     <string name="mode_restate">Restatement</string>
-    <string name="dlg_mode_note">“Language tutor” practises speaking with you and corrects your pronunciation; “Restatement” does not converse — it simply restates what you say in natural, fluent language. Which language to restate into is chosen from the Tutor dropdown on the main screen (shown as “Restate in English”, etc.); switching starts over.</string>
+    <string name="mode_interpret">Interpretation</string>
+    <string name="dlg_mode_note">“Language tutor” practises speaking with you and corrects your pronunciation; “Restatement” does not converse — it simply restates what you say in natural, fluent language; “Interpretation” is for two people talking face to face: it translates your Chinese into the foreign language and the other person’s foreign language back into Chinese, showing the translation in the subtitles. Which language to restate into or interpret is chosen from the Tutor dropdown on the main screen (shown as “Restate in English”, “English ⇄ Chinese”, etc.); switching starts over.</string>
 
-    <!-- 转述档位标签 + 常用语种名(与「自定义语言」下拉共用) -->
+    <!-- 转述/口译档位标签 + 常用语种名(与「自定义语言」下拉共用) -->
     <string name="preset_restate_label">Restate in %1$s</string>
+    <string name="preset_interpret_label">%1$s ⇄ Chinese</string>
     <string name="langname_english">English</string>
     <string name="langname_japanese">Japanese</string>
     <string name="langname_russian">Russian</string>
